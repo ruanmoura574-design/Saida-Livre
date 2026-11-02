@@ -164,28 +164,31 @@ const save=()=>{try{localStorage.setItem("saidalivre",JSON.stringify(SV))}catch(
 // ---------- áudio relaxante ----------
 let AC=null,master,rev,musT=null;
 function ac(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=SV.mute?0:.7;master.connect(AC.destination);
- rev=AC.createConvolver();const L=AC.sampleRate*3,b=AC.createBuffer(2,L,AC.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<L;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/L,3)}rev.buffer=b;const rg=AC.createGain();rg.gain.value=.5;rev.connect(rg);rg.connect(master)}if(AC.state==="suspended")AC.resume();return AC}
+ rev=AC.createConvolver();const L=AC.sampleRate*1.8|0,b=AC.createBuffer(2,L,AC.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<L;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/L,3)}rev.buffer=b;const rg=AC.createGain();rg.gain.value=.5;rev.connect(rg);rg.connect(master)}if(AC.state==="suspended")AC.resume();return AC}
 const mf=m=>440*Math.pow(2,(m-69)/12);
-let VOICES=0;function tone(f,t,dur,vol,type="sine",att=.01,wet=.5){if(VOICES>40)return;VOICES++;setTimeout(()=>VOICES--,(dur+.1)*1000);const o=AC.createOscillator(),gn=AC.createGain();o.type=type;o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+att);gn.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(gn);gn.connect(master);const w=AC.createGain();w.gain.value=wet;gn.connect(w);w.connect(rev);o.start(t);o.stop(t+dur+.05)}
+let VOICES=0;function tone(f,t,dur,vol,type="sine",att=.01,wet=.5){if(VOICES>70)return;VOICES++;setTimeout(()=>VOICES--,(dur+.1)*1000);const o=AC.createOscillator(),gn=AC.createGain();o.type=type;o.frequency.value=f;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+att);gn.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(gn);gn.connect(master);const w=AC.createGain();w.gain.value=wet;gn.connect(w);w.connect(rev);o.start(t);o.stop(t+dur+.05)}
 let musMode="";function startMusic(){if(!musMode)music("game")}
 function drum(t,kind,v=1){if(kind==="k"){const o=AC.createOscillator(),gn=AC.createGain();o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+.18);gn.gain.setValueAtTime(.5*v,t);gn.gain.exponentialRampToValueAtTime(.001,t+.25);o.connect(gn);gn.connect(master);o.start(t);o.stop(t+.3);return}
  const n=AC.createBufferSource();if(!drum.nb){const L=AC.sampleRate*.2|0;drum.nb=AC.createBuffer(1,L,AC.sampleRate);const x=drum.nb.getChannelData(0);for(let i=0;i<L;i++)x[i]=Math.random()*2-1}n.buffer=drum.nb;const f=AC.createBiquadFilter(),gn=AC.createGain();
  if(kind==="h"){f.type="highpass";f.frequency.value=7000;gn.gain.setValueAtTime(.06*v,t);gn.gain.exponentialRampToValueAtTime(.001,t+.05)}else{f.type="bandpass";f.frequency.value=1800;gn.gain.setValueAtTime(.22*v,t);gn.gain.exponentialRampToValueAtTime(.001,t+.18)}
  n.connect(f);f.connect(gn);gn.connect(master);if(kind==="s"){const w=AC.createGain();w.gain.value=.3;gn.connect(w);w.connect(rev)}n.start(t)}
-function music(mode){if(!AC||musMode===mode)return;musMode=mode;clearInterval(musT);let s=0;
- if(mode==="intro"){// synthwave: arpejo brilhante, baixo pulsante, bateria
-  const prog=[[57,60,64,69],[53,57,60,65],[48,52,55,60],[55,59,62,67]];
-  musT=setInterval(()=>{if(AC.state!=="running")return;const t=AC.currentTime+.05,bar=(s>>4)%4,ch=prog[bar],b=s%16;
-   const o=AC.createOscillator(),f=AC.createBiquadFilter(),gn=AC.createGain();o.type="sawtooth";o.frequency.value=mf(ch[b%4]+12+(b>=8?12:0));f.type="lowpass";f.frequency.value=1800+Math.sin(s*.05)*900;gn.gain.setValueAtTime(.06,t);gn.gain.exponentialRampToValueAtTime(.001,t+.2);o.connect(f);f.connect(gn);gn.connect(master);const w=AC.createGain();w.gain.value=.4;gn.connect(w);w.connect(rev);o.start(t);o.stop(t+.25);
-   if(b%2==0)tone(mf(ch[0]-24),t,.22,.18,"triangle",.005,.1);if(b%4==0)drum(t,"k");if(b%8==4)drum(t,"s");drum(t,"h",b%2?.6:1);
-   if(b==0)ch.forEach(n=>tone(mf(n),t,2.4,.03,"sawtooth",.3,.8));s++},120)}
- else{// lo-fi tranquilo para jogar: piano elétrico, batida suave, chiado de vinil
-  const prog=[[62,65,69,72],[60,64,67,71],[57,60,64,67],[59,62,65,69]],pent=[69,72,74,76,79,81,84];
-  if(!music.vin){const n=AC.createBufferSource(),L=AC.sampleRate*2,b=AC.createBuffer(1,L,AC.sampleRate),x=b.getChannelData(0);for(let i=0;i<L;i++)x[i]=Math.random()<.002?(Math.random()*2-1):(Math.random()*2-1)*.02;n.buffer=b;n.loop=true;const gn=AC.createGain();gn.gain.value=.08;n.connect(gn);gn.connect(master);n.start();music.vin=1}
-  musT=setInterval(()=>{if(AC.state!=="running")return;const t=AC.currentTime+.05,bar=(s>>4)%4,b=s%16,ch=prog[bar];
-   if(b==0||b==10)ch.forEach((n,i)=>{tone(mf(n-12),t+i*.03,2.2,.045,"sine",.02,.5);tone(mf(n),t+i*.03,1.2,.012,"triangle",.02,.5)});
-   if(b==0||b==7||b==10)drum(t,"k",.6);if(b==4||b==12)drum(t,"s",.5);if(b%2==0)drum(t,"h",.5);if(b==0)tone(mf(ch[0]-24),t,1.4,.14,"sine",.01,.1);if(b==8)tone(mf(ch[2]-24),t,1,.11,"sine",.01,.1);
-   if(Math.random()<.18&&b%2==0)tone(mf(pick(pent)),t,1.6,.045,"sine",.005,.8);s++},150)}}
+function sched(dur,fn){let nt=0,st=0;return setInterval(()=>{if(AC.state!=="running"){nt=0;return}const now=AC.currentTime;if(!nt||nt<now)nt=now+.06;while(nt<now+.4){fn(nt,st++);nt+=dur}},50)}
+function pad(fs,t,dur,vol,bright=900){fs.forEach(f=>{[-7,0,7].forEach(dt=>{if(VOICES>70)return;VOICES++;setTimeout(()=>VOICES--,(t-AC.currentTime+dur+.2)*1000);
+ const o=AC.createOscillator(),lp=AC.createBiquadFilter(),gn=AC.createGain();o.type="sawtooth";o.frequency.value=f;o.detune.value=dt;lp.type="lowpass";lp.frequency.setValueAtTime(bright*.5,t);lp.frequency.linearRampToValueAtTime(bright,t+dur*.5);lp.frequency.linearRampToValueAtTime(bright*.5,t+dur);
+ gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+dur*.35);gn.gain.linearRampToValueAtTime(vol*.8,t+dur*.7);gn.gain.linearRampToValueAtTime(0,t+dur);o.connect(lp);lp.connect(gn);gn.connect(master);const w=AC.createGain();w.gain.value=.9;gn.connect(w);w.connect(rev);o.start(t);o.stop(t+dur+.05)})})}
+function organ(fs,t,dur,vol){fs.forEach(f=>[1,2,3,4].forEach((h,i)=>tone(f*h,t,dur,vol/(1+i*1.6),"sine",dur*.3,.95)))}
+function music(mode){if(!AC||musMode===mode)return;musMode=mode;clearInterval(musT);
+ const PROG=[[45,57,60,64,71],[41,53,60,65,69],[48,55,60,64,67],[43,55,59,62,67]];// Am(9) F C G — tom "espacial"
+ if(mode==="intro"){// órgão profundo + tique-taque suave, estilo trilha espacial
+  musT=sched(.4,(t,s)=>{const bar=(s>>4)%4,b=s%16,ch=PROG[bar];
+   if(b==0){organ(ch.slice(1,4),t,6.6,.035);tone(mf(ch[0]-12),t,6.6,.16,"sine",1.5,.3);pad(ch.slice(1).map(mf),t,6.8,.012,700)}
+   if(b%3==0){const n=AC.createOscillator(),g=AC.createGain();n.type="square";n.frequency.value=2400;g.gain.setValueAtTime(.012,t);g.gain.exponentialRampToValueAtTime(.0005,t+.03);n.connect(g);g.connect(master);n.start(t);n.stop(t+.04)}
+   if(b==8||b==12&&bar%2)tone(mf(ch[2]+24),t,4,.03,"sine",.01,1)})}
+ else{// ambiente calmo para jogar: pads lentos, grave fundo e sininhos espaçados
+  const pent=[69,72,74,76,79,81,84,86];
+  musT=sched(.5,(t,s)=>{const bar=(s>>4)%4,b=s%16,ch=PROG[bar];
+   if(b==0){pad(ch.slice(1).map(mf),t,8.4,.014,650);tone(mf(ch[0]-12),t,8.2,.13,"sine",2.5,.3)}
+   if(b%2==0&&Math.random()<.4){const n=pick(pent);tone(mf(n),t,4.5,.035,"sine",.008,1);tone(mf(n)*2,t,2,.006,"sine",.008,1)}})}}
 const sfxRaw={go(){if(!AC)return;const t=AC.currentTime;tone(mf(74+[0,2,4,7,9][Math.random()*5|0]),t,.6,.12,"sine",.005,.6);tone(mf(86),t+.05,.3,.03,"sine",.005,.6)},
  bad(){if(!AC)return;const t=AC.currentTime;tone(150,t,.25,.18,"triangle",.005,.2);tone(110,t+.06,.3,.12,"triangle",.005,.2)},
  win(){if(!AC)return;const t=AC.currentTime;[0,4,7,12,16].forEach((n,i)=>tone(mf(69+n),t+i*.11,1.4,.1,"sine",.005,.8))},
