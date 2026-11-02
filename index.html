@@ -57,7 +57,13 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
 .sheet{position:fixed;right:14px;top:calc(62px + env(safe-area-inset-top,0px));background:#1d1f5c;border:1px solid #ffffff22;border-radius:16px;padding:8px;z-index:7;display:grid;gap:4px;min-width:200px;box-shadow:0 10px 30px #0008}.sheet[hidden]{display:none}
 .sheet button{border:0;background:none;color:#fff;font:800 16px var(--font);text-align:left;padding:10px 12px;border-radius:10px;cursor:pointer}.sheet button:hover{background:#ffffff14}
 .zoom{position:fixed;right:max(12px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:grid;gap:6px;z-index:2}.zoom button{width:46px;height:46px;border-radius:50%;border:0;background:#ffffff1c;color:#fff;font:900 22px var(--font);cursor:pointer;backdrop-filter:blur(4px)}.zoom #zv{font-size:11px;height:30px;border-radius:15px;background:#ffffff10;color:var(--muted)}
-.inmenu .zoom,.inmenu .top,.inmenu #hint,.inmenu #tip,.inmenu .ib{visibility:hidden}
+.inmenu .zoom,.lbox{display:grid;gap:10px;justify-items:center}.lbtn{width:100%;border:0;border-radius:16px;padding:14px;font:900 17px var(--font);cursor:pointer;color:#13143a;background:#fff;display:grid;gap:2px}.lbtn small{font-weight:700;font-size:13px;opacity:.75}.lbtn.ad{background:linear-gradient(90deg,#7dff8a,#c9ffb0)}.lbtn.shop{background:linear-gradient(90deg,#ffd56b,#ffb52e)}.lbtn.gray{background:#ffffff1a;color:#fff}
+.packs{display:grid;gap:10px}.pack{position:relative;border:2px solid #ffffff22;border-radius:18px;background:#ffffff10;color:#fff;padding:14px 14px 14px 64px;text-align:left;cursor:pointer;display:grid;gap:2px;font-family:var(--font)}.pack b{font-size:18px;padding-right:90px}.pack small{color:#c9cbf0;font-weight:700}
+.pack .pe{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:34px}.pack .pr{position:absolute;right:14px;top:14px;background:#5ff3ff;color:#13143a;font-weight:900;border-radius:999px;padding:5px 12px;font-size:15px}
+.pack.best{border-color:#ffd56b;background:linear-gradient(135deg,#ffd56b22,#ff8ad822);box-shadow:0 0 24px #ffd56b44;transform:scale(1.03)}.pack.best .pr{background:#ffd56b}.pack.free .pr{background:#7dff8a}
+.badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#ff4d6d;color:#fff;font:900 11px var(--font);font-style:normal;letter-spacing:1px;padding:3px 10px;border-radius:999px}
+.chancesHome{margin:10px 0 4px;color:#c9cbf0;font-weight:800;font-size:14px;text-align:center}
+.inmenu .top,.inmenu #hint,.inmenu #tip,.inmenu .ib{visibility:hidden}
 .logo{width:120px;height:120px;margin-bottom:10px}
 #ovIntro{background:radial-gradient(ellipse at 50% 40%,#2a2b5c00,#0b0c26 80%);backdrop-filter:none}
 #ovIntro .logo{width:150px;height:150px;opacity:0}#ovIntro h2{opacity:0;font-size:clamp(44px,12vw,80px)}#ovIntro p{opacity:0}
@@ -74,10 +80,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
 </head>
 <body>
 <canvas id="c" aria-label="Cubo com setas"></canvas>
-<div class="top"><h1 id="lvl">Nível 1</h1><div class="chips"><div class="chip">➚ <span id="left">0</span></div><div class="chip" id="hearts"></div><div class="chip" id="diff">Normal</div></div></div>
+<div class="top"><h1 id="lvl">Nível 1</h1><div class="chips"><div class="chip">➚ <span id="left">0</span></div><div class="chip" id="hearts"></div><div class="chip" id="chancesChip"></div><div class="chip" id="diff">Normal</div></div></div>
 <button class="ib" id="menuBtn" type="button" aria-label="Voltar ao início">‹</button>
 <button class="ib" id="snd" type="button" aria-label="Configurações">⚙️</button>
-<div class="sheet" id="sheet" hidden><button type="button" id="sMute">🔊 Som: ligado</button><button type="button" id="sVib">📳 Vibração: ligada</button><button type="button" id="sRestart">🔄 Recomeçar fase</button><button type="button" id="sHome">🏠 Início</button></div>
+<div class="sheet" id="sheet" hidden><button type="button" id="sMute">🔊 Som: ligado</button><button type="button" id="sVib">📳 Vibração: ligada</button><button type="button" id="sShop">🛒 Loja</button><button type="button" id="sRestart">🔄 Recomeçar fase</button><button type="button" id="sHome">🏠 Início</button></div>
 <div id="tip">Toque numa seta que tenha o caminho livre. Arraste para girar. Use dois dedos (ou a rodinha do mouse) para dar zoom.</div>
 <div class="zoom" id="zoomBox"><button type="button" id="zin" aria-label="Aproximar">＋</button><button type="button" id="zv" aria-label="Zoom normal">100%</button><button type="button" id="zout" aria-label="Afastar">－</button></div>
 <button id="hint" type="button" aria-label="Dica">💡<b id="hc">3</b></button>
@@ -91,7 +97,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
  <div class="ph" id="phInfo"></div><div class="grid" id="grid"></div><button class="sm" id="phBack" type="button">Voltar</button></div></div>
 <div class="ov home" id="ovStart" hidden>
  <div class="pane" id="paneHome"><div class="daily"><div class="ic">📅</div><small>DESAFIO DIÁRIO</small><b id="dDate">1 de novembro</b><button type="button" id="dPlay">Jogar</button></div>
-  <div class="hometitle">Saída<br>Livre</div><button class="pill" id="play" type="button">Nova partida<small id="playSub">Fase 1</small></button><button class="sm" id="phasesBtn" type="button">Escolher fase</button></div>
+  <div class="hometitle">Saída<br>Livre</div><button class="pill" id="play" type="button">Nova partida<small id="playSub">Fase 1</small></button><div style="display:flex;gap:18px;justify-content:center"><button class="sm" id="phasesBtn" type="button">Escolher fase</button><button class="sm" id="homeShop" type="button">🛒 Loja</button></div><div class="chancesHome" id="chancesHome"></div></div>
  <div class="pane" id="paneCal" hidden><div class="cal"><h2 style="font-size:34px;margin:0 0 4px;text-align:center">Desafios</h2><p id="calInfo" style="text-align:center;margin:0 auto 8px"></p>
   <div class="calh"><button type="button" id="calPrev" aria-label="Mês anterior">‹</button><b id="calMonth"></b><button type="button" id="calNext" aria-label="Próximo mês">›</button></div><div class="calg" id="calGrid"></div></div></div>
  <div class="pane" id="paneMe" hidden><div class="prof"><div class="av" id="avatar">J</div><input id="pname" maxlength="16" aria-label="Seu nome"><div class="stats" id="stats"></div>
@@ -100,14 +106,24 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
  <nav class="nav"><button type="button" class="on" data-pane="paneHome"><span>🏠</span>Início</button><button type="button" data-pane="paneCal"><span>📅</span>Desafios</button><button type="button" data-pane="paneMe"><span>👤</span>Eu</button></nav></div>
 <div class="ov" id="ovWin" hidden><div><div><h2 id="winH">Fase concluída!</h2><div id="winStars" style="font-size:40px;text-align:center"></div><p id="winTxt" style="text-align:center;margin:8px auto 0;color:#e3e6ff"></p></div><div style="width:100%;display:grid;justify-items:center;gap:6px;padding:0 18px;box-sizing:border-box"><button class="pill" id="next" type="button" style="margin:0">Próxima partida<small id="nextSub"></small></button><button class="sm" id="toHome" type="button" style="color:#fff;text-decoration:none;font-size:20px">Início</button><button class="sm" id="toPhases" type="button" style="margin:0">Ver fases</button></div></div></div>
 <canvas id="confetti" hidden></canvas>
-<div class="ov" id="ovLose" hidden><div><h2>Sem vidas</h2><p>Algumas setas estavam bloqueadas. Tente de novo com calma.</p><button class="go" id="retry" type="button">Tentar de novo</button></div></div>
+<div class="ov" id="ovLose" hidden><div style="max-width:380px;width:100%"><div style="font-size:54px">💔</div><h2>Acabaram os corações</h2><p id="loseTxt"></p>
+ <div class="lbox" id="loseBtns"></div></div></div>
+<div class="ov" id="ovShop" hidden><div style="max-width:420px;width:100%"><h2 style="font-size:40px">🛒 Loja</h2><p id="shopTxt" style="margin:0 auto 14px"></p>
+ <div class="packs">
+  <button type="button" class="pack" data-pk="recarga"><span class="pe">⚡</span><b>Recarga Rápida</b><small>Devolve as 3 chances na hora, sem esperar</small><span class="pr">R$ 1,99</span></button>
+  <button type="button" class="pack best" data-pk="inf24"><i class="badge">MAIS VENDIDO</i><span class="pe">♾️</span><b>Vidas Infinitas 24h</b><small>Jogue sem parar por 24 horas</small><span class="pr">R$ 4,99</span></button>
+  <button type="button" class="pack" data-pk="mestre"><span class="pe">👑</span><b>Pacote Mestre</b><small>Vidas infinitas por 7 dias + 10 dicas 💡</small><span class="pr">R$ 9,99</span></button>
+  <button type="button" class="pack free" data-pk="ad"><span class="pe">📺</span><b>Grátis</b><small>Assista a um anúncio e ganhe +1 chance</small><span class="pr">Assistir</span></button>
+ </div><p style="font-size:12px;margin:12px auto 6px;max-width:340px">⚠️ Versão de teste: as compras ainda não cobram nada. O pagamento real será feito pelo Google Play na versão da loja.</p>
+ <button class="sm" id="shopClose" type="button">Fechar</button></div></div>
+<div class="ov" id="ovAd" hidden><div><div style="font-size:12px;letter-spacing:2px;color:#b9bce8">ANÚNCIO DE TESTE</div><div style="width:min(80vw,320px);aspect-ratio:16/9;margin:12px auto;border-radius:16px;background:linear-gradient(135deg,#ffb52e,#ff5f8a);display:grid;place-items:center;font:900 22px var(--font);color:#fff">Seu anúncio aqui 📢</div><p>A recompensa chega em <b id="adT">5</b>s…</p></div></div>
 
 <script>
 "use strict";
 const cv=document.getElementById("c"),ctx=cv.getContext("2d"),$=id=>document.getElementById(id);
 let Wd=0,Ht=0,DPR=1;function resize(){DPR=Math.min(2,devicePixelRatio||1);Wd=innerWidth;Ht=innerHeight;cv.width=Wd*DPR;cv.height=Ht*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}addEventListener("resize",resize);resize();
 // ---------- salvar ----------
-let SV={lv:1,hints:3,mute:false,stars:{},daily:{},name:"Jogador",vib:true};try{Object.assign(SV,JSON.parse(localStorage.getItem("saidalivre")||"{}"))}catch(e){}
+let SV={chances:3,refillAt:0,infUntil:0,lv:1,hints:3,mute:false,stars:{},daily:{},name:"Jogador",vib:true};try{Object.assign(SV,JSON.parse(localStorage.getItem("saidalivre")||"{}"))}catch(e){}
 const PH=[{n:"Fácil",c:"#7dff8a",a:1,b:10},{n:"Médio",c:"#ffd36b",a:11,b:20},{n:"Difícil",c:"#ff6b8b",a:21,b:30},{n:"Especialista",c:"#5ff3ff",a:31,b:60},{n:"Mestre",c:"#ffb0ff",a:61,b:100}],MAXLV=100,phaseOf=lv=>{const i=PH.findIndex(p=>lv<=p.b);return i<0?PH.length-1:i},maxUnlocked=()=>Math.min(MAXLV,Math.max(1,...Object.keys(SV.stars).map(Number).map(x=>x+1)));
 const save=()=>{try{localStorage.setItem("saidalivre",JSON.stringify(SV))}catch(e){}};
 // ---------- áudio relaxante ----------
@@ -148,6 +164,7 @@ const SHAPES={cubo:[[0,0,0]],barra:[[0,0,0],[1,0,0]],L:[[0,0,0],[1,0,0],[0,1,0]]
 const PLAN=[["cubo",3],["cubo",3],["cubo",4],["cubo",4],["barra",3],["barra",3],["L",3],["L",3],["barra",4],["T",3],
  ["placa",3],["L",4],["escada",3],["T",3],["placa",4],["U",3],["escada",3],["grande",3],["T",4],["U",3],
  ["recorte",3],["cruz",3],["torre",3],["grande",4],["ponte",3],["escada",4],["recorte",4],["cruz",4],["ponte",4],["grande",5]];
+const MAXH=5,starsFor=h=>h>=5?3:h>=3?2:1;
 let curLv=1,G=3,VOX=new Set(),SCN=1,CEN=[0,0,0],QUADS=[],REGS=[],CELLS=new Map(),occ=new Map(),arrows=[],yaw=-.6,pitch=.45,vyaw=0,vpitch=0,tyaw=null,tpitch=null,hearts=3,hintArrow=null,hintT=0,flash=0,shakeT=0,won=false,N=3;
 const vadd=(a,b,k=1)=>[a[0]+b[0]*k,a[1]+b[1]*k,a[2]+b[2]*k],key=p=>p.map(c=>Math.round(c*2*G)).join(",");
 function rot(p){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);let x=p[0]*cy+p[2]*sy,z=-p[0]*sy+p[2]*cy,y=p[1];return[x,y*cp-z*sp,y*sp+z*cp]}
@@ -179,7 +196,7 @@ function genLevel(lv,opt){daily=opt?opt.date:null;if(lv===1&&!opt&&!SV.tut){tut=
  while(live.size){let changed=false;for(const id of [...live]){const a=arrows[id];if(freeAhead(a,sim)===Infinity){live.delete(id);a.ks.forEach(kk=>sim.delete(kk));changed=true}}
   if(!changed){const ids=[...live];const id=ids[Math.floor(R()*ids.length)];live.delete(id);const a=arrows[id];a.ks.forEach(kk=>{sim.delete(kk);occ.delete(kk)});a.gone=true}}
  arrows=arrows.filter(a=>!a.gone);occ=new Map();arrows.forEach((a,i)=>{a.id=i;a.ks.forEach(kk=>occ.set(kk,i));const qs=new Set(a.ks.map(kk=>CELLS.get(kk).q));const nx=CELLS.get(key(vadd(a.cells[a.cells.length-1],a.dir)));if(nx&&nx.reg===a.f)qs.add(nx.q);a.qs=qs});
- hearts=3;won=false;hintArrow=null;updHud()}
+ hearts=MAXH;won=false;hintArrow=null;updHud()}
 function freeAhead(a,m){const mm=m||occ,n=REGS[a.f].n;let p=a.cells[a.cells.length-1],d=0;for(let guard=0;guard<200;guard++){p=vadd(p,a.dir);const kk=key(p),c=CELLS.get(kk);
   if(c&&c.reg===a.f){const o=mm.get(kk);if(o!==undefined&&o!==a.id)return d;d++;continue}
   const q=vadd(p,n,.25);if(VOX.has(q.map(Math.floor).join(",")))return d;return Infinity}return Infinity}
@@ -237,7 +254,7 @@ function shadeHex(h,k){const n=parseInt(h.slice(1),16);return`rgb(${(n>>16)*k|0}
 const parts=[];function burst(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*7,v=40+Math.random()*120;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,t:.8+Math.random()*.4,r:1.5+Math.random()*2.5,c})}}
 function tapArrow(a){if(a.mode)return;const d=freeAhead(a);if(tut&&tut.step===1&&d===Infinity){tut.step=2;tutMsg("Boa! 🎉 Agora arraste o dedo para girar o cubo e achar mais setas livres.");setTimeout(()=>{if(tut&&tut.step===2){tut.step=3;tutMsg("Cuidado: se a seta bater em outra, você perde um ❤️. Use 💡 se travar!");setTimeout(()=>{tut=null;SV.tut=1;save();$("tip").style.opacity=0},4500)}},4500)}
  if(d===Infinity){a.alive=false;a.mode=2;a.exitAt=0;a.ks.forEach(kk=>occ.delete(kk));sfx.go();if(hintArrow===a)hintArrow=null;const h=a._P&&a._P[a._P.length-1];if(h)burst(h[0],h[1],curPal()[1]);updHud();if(!arrows.some(x=>x.alive))setTimeout(win,700)}
- else{a.mode=1;a.bump=d+.35;a.bt=0;sfx.bad();if(SV.vib&&navigator.vibrate)navigator.vibrate(120);hearts--;flash=.5;shakeT=.3;updHud();if(hearts<=0)setTimeout(()=>{$("ovLose").hidden=false},600)}}
+ else{a.mode=1;a.bump=d+.35;a.bt=0;sfx.bad();if(SV.vib&&navigator.vibrate)navigator.vibrate(120);hearts--;flash=.5;shakeT=.3;updHud();if(hearts<=0)setTimeout(openLose,600)}}
 function update(dt){for(const a of arrows){if(a.mode===2){a.s+=dt*(9+a.s*2);if(a.s>N*2+a.cells.length+2)a.mode=4}
   else if(a.mode===1){a.bt+=dt*6;a.s=a.bt<1?a.bump*Math.sin(a.bt*Math.PI/2):a.bump*Math.max(0,2-a.bt);if(a.bt>=2.6){a.s=0;a.mode=0}}}
  if(hintT>0)hintT-=dt;
@@ -265,45 +282,70 @@ $("hint").onclick=()=>{ac();if(SV.hints<=0){showTip("Sem dicas. Complete níveis
  const vis=ok.sort((a,b)=>faceVis(b.f)-faceVis(a.f))[0];hintArrow=vis;hintT=4;SV.hints--;save();faceTo(vis.f);sfx.hint();updHud()};
 $("snd").onclick=e=>{e.stopPropagation();$("sheet").hidden=!$("sheet").hidden};document.addEventListener("pointerdown",e=>{if(!e.target.closest("#sheet,#snd"))$("sheet").hidden=true});
 $("sMute").onclick=()=>{SV.mute=!SV.mute;save();if(master)master.gain.value=SV.mute?0:.7;updHud()};$("sVib").onclick=()=>{SV.vib=!SV.vib;save();updHud()};
-$("sRestart").onclick=()=>{$("sheet").hidden=true;daily?genDaily(daily):genLevel(curLv)};$("sHome").onclick=()=>{$("sheet").hidden=true;goHome()};
+$("sRestart").onclick=()=>{$("sheet").hidden=true;gate(()=>daily?genDaily(daily):genLevel(curLv))};$("sShop").onclick=()=>{$("sheet").hidden=true;openShop()};$("homeShop").onclick=()=>openShop();$("sHome").onclick=()=>{$("sheet").hidden=true;goHome()};
 function goHome(){document.body.classList.add("inmenu");music("intro");fillHome();showPane("paneHome");$("ovStart").hidden=false}
 function fillHome(){const k=dkey(new Date());$("dDate").textContent=dlabel(k);$("dPlay").textContent=SV.daily[k]?"Concluído ✓":"Jogar";$("playSub").textContent="Fase "+SV.lv}
 function showPane(id){["paneHome","paneCal","paneMe"].forEach(p=>$(p).hidden=p!==id);document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.pane===id));if(id==="paneCal")fillCal();if(id==="paneMe")fillMe()}
 document.querySelector(".nav").onclick=e=>{const b=e.target.closest("button");if(b){showPane(b.dataset.pane);sfx.hint()}};
-$("dPlay").onclick=()=>{ac();$("ovStart").hidden=true;genDaily(dkey(new Date()));yaw=-.6;pitch=.45};
+$("dPlay").onclick=()=>{ac();gate(()=>{$("ovStart").hidden=true;genDaily(dkey(new Date()));yaw=-.6;pitch=.45})};
 let calM=new Date();calM.setDate(1);
 function fillCal(){const y=calM.getFullYear(),m=calM.getMonth(),today=new Date(),first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();$("calMonth").textContent=MES[m][0].toUpperCase()+MES[m].slice(1)+" "+y;
  let done=0,avail=0,h=["D","S","T","Q","Q","S","S"].map(d=>`<i>${d}</i>`).join("")+"<span></span>".repeat(first);
  for(let d=1;d<=days;d++){const dt=new Date(y,m,d),k=dkey(dt),fut=dt>today,ok=SV.daily[k];if(!fut)avail++;if(ok)done++;h+=`<button type="button" class="day${ok?" done":""}${k===dkey(today)?" today":""}" data-k="${k}" ${fut?"disabled":""}>${ok?"⭐":d}</button>`}
  $("calGrid").innerHTML=h;$("calInfo").textContent=`🏆 ${done} de ${avail} desafios concluídos neste mês`;$("calNext").disabled=y===today.getFullYear()&&m===today.getMonth()}
 $("calPrev").onclick=()=>{calM.setMonth(calM.getMonth()-1);fillCal()};$("calNext").onclick=()=>{calM.setMonth(calM.getMonth()+1);fillCal()};
-$("calGrid").onclick=e=>{const b=e.target.closest(".day");if(!b||b.disabled)return;ac();$("ovStart").hidden=true;genDaily(b.dataset.k);yaw=-.6;pitch=.45};
+$("calGrid").onclick=e=>{const b=e.target.closest(".day");if(!b||b.disabled)return;ac();gate(()=>{$("ovStart").hidden=true;genDaily(b.dataset.k);yaw=-.6;pitch=.45})};
 function streak(){let n=0,d=new Date();if(!SV.daily[dkey(d)])d.setDate(d.getDate()-1);while(SV.daily[dkey(d)]){n++;d.setDate(d.getDate()-1)}return n}
 function fillMe(){$("pname").value=SV.name;$("avatar").textContent=(SV.name||"J")[0].toUpperCase();const st=Object.values(SV.stars);
  $("stats").innerHTML=[[st.length,"fases concluídas"],[st.reduce((a,b)=>a+b,0),"estrelas"],[Object.keys(SV.daily).length,"desafios diários"],[streak()+" 🔥","dias seguidos"],[SV.hints+" 💡","dicas"],[PH[phaseOf(SV.lv)].n,"nível atual"]].map(([v,l])=>`<div><b>${v}</b><small>${l}</small></div>`).join("")}
 $("pname").oninput=()=>{SV.name=$("pname").value.trim()||"Jogador";save();$("avatar").textContent=SV.name[0].toUpperCase()};
 $("gLogin").onclick=()=>{$("gNote").textContent="Em breve: entre com sua conta Google para salvar o progresso na nuvem e jogar em qualquer aparelho. Por enquanto, seu progresso fica salvo neste aparelho."};
 $("menuBtn").onclick=()=>goHome();
-$("play").onclick=()=>{ac();$("ovStart").hidden=true;genLevel(SV.lv);yaw=-.6;pitch=.45};
+$("play").onclick=()=>{ac();gate(()=>{$("ovStart").hidden=true;genLevel(SV.lv);yaw=-.6;pitch=.45})};
 $("phasesBtn").onclick=openPhases;$("phBack").onclick=()=>{$("ovPhases").hidden=true;goHome()};
 let tabP=0;function openPhases(){$("ovStart").hidden=true;tabP=phaseOf(SV.lv);fillPhases();$("ovPhases").hidden=false}
 function fillPhases(){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",+t.dataset.p===tabP));const mu=maxUnlocked(),T=PH[tabP],first=T.a,cnt=T.b-T.a+1;
  const done=[...Array(cnt)].filter((_,i)=>SV.stars[first+i]).length;$("phInfo").textContent=`${T.n} · fases ${first} a ${T.b} · ${done}/${cnt} concluídas`+(first>mu?" · 🔒 termine o nível anterior":"");
  $("grid").innerHTML=[...Array(cnt)].map((_,i)=>{const lv=first+i,st=SV.stars[lv]||0,lock=lv>mu;return`<button type="button" class="lvb${lock?" lock":""}${lv===mu&&!st?" cur":""}" data-lv="${lv}" ${lock?"disabled":""}>${lock?"🔒":lv}<small>${st?"⭐".repeat(st):""}</small></button>`}).join("")}
 $("tabs").onclick=e=>{const t=e.target.closest(".tab");if(!t)return;tabP=+t.dataset.p;fillPhases();sfx.hint()};
-$("grid").onclick=e=>{const b=e.target.closest(".lvb");if(!b||b.disabled)return;$("ovPhases").hidden=true;genLevel(+b.dataset.lv);yaw=-.6;pitch=.45};
-$("next").onclick=()=>{$("ovWin").hidden=true;stopConf();genLevel(SV.lv);yaw=-.6;pitch=.45};$("toHome").onclick=()=>{$("ovWin").hidden=true;stopConf();goHome()};$("toPhases").onclick=()=>{$("ovWin").hidden=true;stopConf();openPhases()};
-$("retry").onclick=()=>{$("ovLose").hidden=true;genLevel(curLv)};
+$("grid").onclick=e=>{const b=e.target.closest(".lvb");if(!b||b.disabled)return;gate(()=>{$("ovPhases").hidden=true;genLevel(+b.dataset.lv);yaw=-.6;pitch=.45})};
+$("next").onclick=()=>{gate(()=>{$("ovWin").hidden=true;stopConf();genLevel(SV.lv);yaw=-.6;pitch=.45})};$("toHome").onclick=()=>{$("ovWin").hidden=true;stopConf();goHome()};$("toPhases").onclick=()=>{$("ovWin").hidden=true;stopConf();openPhases()};
+const inf=()=>Date.now()<(SV.infUntil||0),REFILL=25*60e3;
+function refillCheck(){if(SV.chances<3&&SV.refillAt&&Date.now()>=SV.refillAt){SV.chances=3;SV.refillAt=0;save();updHud()}}
+const canPlay=()=>{refillCheck();return inf()||SV.chances>0};
+function gate(fn){if(canPlay())fn();else openShop("Suas 3 chances acabaram.")}
+const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1000));return`${t/60|0}:${String(t%60).padStart(2,"0")}`};
+function openLose(){if(inf()){hearts=MAXH;updHud();say2("♾️ Vidas infinitas: continue jogando!");return}
+ const left=SV.chances-1;$("loseTxt").innerHTML=left>0?`Você ainda tem <b>${left}</b> ${left>1?"chances":"chance"} de 5 corações.`:`Essa era sua última chance. Depois disso, as 3 chances voltam em <b>25 minutos</b>.`;
+ $("loseBtns").innerHTML=`<button type="button" class="lbtn ad" data-l="ad">📺 Assistir anúncio e continuar<small>Volta com 3 ❤️ de onde parou, sem gastar chance</small></button>`+
+  (left>0?`<button type="button" class="lbtn" data-l="retry">🔄 Recomeçar a fase<small>Usa 1 chance · ${left} restante${left>1?"s":""}</small></button>`:`<button type="button" class="lbtn shop" data-l="shop">⚡ Continuar agora (Loja)<small>Recarga a partir de R$ 1,99</small></button><button type="button" class="lbtn gray" data-l="wait">⏳ Esperar 25 minutos</button>`)+
+  `<button type="button" class="sm" data-l="home">Voltar ao início</button>`;$("ovLose").hidden=false}
+$("loseBtns").onclick=e=>{const b=e.target.closest("[data-l]");if(!b)return;const k=b.dataset.l;
+ if(k==="ad"){showAd(()=>{$("ovLose").hidden=true;hearts=3;updHud();say2("❤️ Você voltou com 3 corações!")});return}
+ useChance();$("ovLose").hidden=true;
+ if(k==="retry")daily?genDaily(daily):genLevel(curLv);else if(k==="shop")openShop("Suas 3 chances acabaram.");else goHome()};
+function useChance(){if(inf())return;SV.chances=Math.max(0,SV.chances-1);if(SV.chances===0)SV.refillAt=Date.now()+REFILL;save();updHud()}
+function showAd(cb){$("ovAd").hidden=false;let t=5;$("adT").textContent=t;const iv=setInterval(()=>{t--;$("adT").textContent=t;if(t<=0){clearInterval(iv);$("ovAd").hidden=true;sfx.win();cb()}},1000)}
+function say2(s){const el=$("tip");el.textContent=s;el.style.opacity=1;el.style.color="#fff";clearTimeout(say2.t);say2.t=setTimeout(()=>{el.style.opacity=0},2600)}
+function openShop(msg){refillCheck();$("shopTxt").innerHTML=(msg?msg+" ":"")+(inf()?`♾️ Vidas infinitas ativas por mais <b>${mmss(SV.infUntil-Date.now())}</b>`:SV.chances<3&&SV.refillAt?`As chances voltam em <b id="shopT">${mmss(SV.refillAt-Date.now())}</b>`:`Você tem <b>${SV.chances}/3</b> chances.`);$("ovShop").hidden=false}
+document.querySelector(".packs").onclick=e=>{const b=e.target.closest(".pack");if(!b)return;const k=b.dataset.pk,now=Date.now();
+ const done=m=>{save();updHud();fillHome();sfx.win();openShop("✅ "+m)};
+ if(k==="ad"){showAd(()=>{SV.chances=Math.min(3,SV.chances+1);if(SV.chances>0&&SV.chances<3&&!SV.refillAt)SV.refillAt=0;if(SV.chances===3)SV.refillAt=0;done("+1 chance!")});return}
+ if(k==="recarga"){SV.chances=3;SV.refillAt=0;done("Chances recarregadas!")}
+ if(k==="inf24"){SV.infUntil=Math.max(now,SV.infUntil||0)+864e5;done("Vidas infinitas por 24h ativadas!")}
+ if(k==="mestre"){SV.infUntil=Math.max(now,SV.infUntil||0)+7*864e5;SV.hints+=10;done("Pacote Mestre ativado: 7 dias + 10 dicas!")}};
+$("shopClose").onclick=()=>{$("ovShop").hidden=true};
+setInterval(()=>{refillCheck();const el=$("shopT");if(el&&SV.refillAt)el.textContent=mmss(SV.refillAt-Date.now());const ch=$("chancesHome");if(ch)ch.textContent=inf()?`♾️ Vidas infinitas: ${mmss(SV.infUntil-Date.now())}`:SV.chances<3&&SV.refillAt?`🎟️ ${SV.chances}/3 chances · voltam em ${mmss(SV.refillAt-Date.now())}`:`🎟️ ${SV.chances}/3 chances`},1000);
 function showTip(s){const el=$("tip");el.textContent=s;el.style.opacity=1;clearTimeout(showTip.t);showTip.t=setTimeout(()=>el.style.opacity=0,2500)}
-function win(){won=true;sfx.win();if(daily){SV.daily[daily]=Math.max(SV.daily[daily]||0,hearts);save();showWin();return}SV.stars[curLv]=Math.max(SV.stars[curLv]||0,hearts);for(let i=0;i<5;i++)setTimeout(()=>burst(Wd/2+(Math.random()-.5)*Wd*.6,Ht*.45+(Math.random()-.5)*Ht*.4,pick(["#5ff3ff","#b88bff","#7dff8a","#ffd36b"])),i*120);
- const bonus=curLv%3===0?1:0;SV.hints+=bonus;const endPh=curLv===PH[phaseOf(curLv)].b;$("winStars").textContent="⭐".repeat(hearts)+"☆".repeat(3-hearts);$("winTxt").textContent=`Fase ${curLv} concluída${hearts===3?" sem nenhum erro!":"!"}${bonus?" +1 dica 💡":""}${endPh&&curLv<MAXLV?` Você liberou o nível ${PH[phaseOf(curLv+1)].n}!`:""}${curLv>=MAXLV?" Você zerou o jogo! 🏆":""}`;SV.lv=Math.min(MAXLV,curLv+1);$("next").hidden=curLv>=MAXLV;save();showWin();return;setTimeout(()=>$("ovWin").hidden=false,900)}
-function showWin(){const d=!!daily;$("winH").textContent=d?"Desafio concluído!":"Fase concluída!";$("winStars").textContent="⭐".repeat(hearts)+"☆".repeat(3-hearts);
+function win(){won=true;sfx.win();if(daily){SV.daily[daily]=Math.max(SV.daily[daily]||0,starsFor(hearts));save();showWin();return}SV.stars[curLv]=Math.max(SV.stars[curLv]||0,starsFor(hearts));for(let i=0;i<5;i++)setTimeout(()=>burst(Wd/2+(Math.random()-.5)*Wd*.6,Ht*.45+(Math.random()-.5)*Ht*.4,pick(["#5ff3ff","#b88bff","#7dff8a","#ffd36b"])),i*120);
+ const bonus=curLv%3===0?1:0;SV.hints+=bonus;const endPh=curLv===PH[phaseOf(curLv)].b;$("winStars").textContent="⭐".repeat(starsFor(hearts))+"☆".repeat(3-starsFor(hearts));$("winTxt").textContent=`Fase ${curLv} concluída${hearts===MAXH?" sem nenhum erro!":"!"}${bonus?" +1 dica 💡":""}${endPh&&curLv<MAXLV?` Você liberou o nível ${PH[phaseOf(curLv+1)].n}!`:""}${curLv>=MAXLV?" Você zerou o jogo! 🏆":""}`;SV.lv=Math.min(MAXLV,curLv+1);$("next").hidden=curLv>=MAXLV;save();showWin();return;setTimeout(()=>$("ovWin").hidden=false,900)}
+function showWin(){const d=!!daily;$("winH").textContent=d?"Desafio concluído!":"Fase concluída!";$("winStars").textContent="⭐".repeat(starsFor(hearts))+"☆".repeat(3-starsFor(hearts));
  if(d)$("winTxt").textContent=`Desafio de ${dlabel(daily)} concluído!${streak()>1?` ${streak()} dias seguidos 🔥`:""}`;$("nextSub").textContent="Fase "+SV.lv;$("next").hidden=!d&&curLv>=MAXLV;setTimeout(()=>{$("ovWin").hidden=false;startConf()},900)}
 let conf=[],confOn=false;const ccv=$("confetti"),cctx=ccv.getContext("2d");
 function startConf(){ccv.hidden=false;ccv.width=innerWidth;ccv.height=innerHeight;conf=[];for(let i=0;i<160;i++)conf.push({x:Math.random()*ccv.width,y:-Math.random()*ccv.height,w:6+Math.random()*8,h:10+Math.random()*12,r:Math.random()*6,vr:(Math.random()-.5)*8,vy:80+Math.random()*140,vx:(Math.random()-.5)*60,c:pick(["#ffe14a","#7dff8a","#ff8ad8","#5ff3ff","#ffffff","#b88bff"]),ph:Math.random()*6});
  if(!confOn){confOn=true;let l=performance.now();const tick=n=>{if(!confOn)return;const dt=Math.min(.05,(n-l)/1000);l=n;cctx.clearRect(0,0,ccv.width,ccv.height);for(const p of conf){p.y+=p.vy*dt;p.x+=p.vx*dt+Math.sin(p.ph+=dt*3)*.8;p.r+=p.vr*dt;if(p.y>ccv.height+20){p.y=-20;p.x=Math.random()*ccv.width}cctx.save();cctx.translate(p.x,p.y);cctx.rotate(p.r);cctx.scale(1,Math.cos(p.ph*1.5));cctx.fillStyle=p.c;cctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);cctx.restore()}requestAnimationFrame(tick)};requestAnimationFrame(tick)}}
 function stopConf(){confOn=false;ccv.hidden=true}
-function updHud(){$("lvl").textContent=daily?dlabel(daily):"Fase "+curLv;$("left").textContent=arrows.filter(a=>a.alive).length;$("hearts").innerHTML=[0,1,2].map(i=>`<span>${i<hearts?"❤️":"🖤"}</span>`).join("");
+function updHud(){$("lvl").textContent=daily?dlabel(daily):"Fase "+curLv;$("left").textContent=arrows.filter(a=>a.alive).length;$("hearts").innerHTML=inf()?"<span>♾️❤️</span>":[0,1,2,3,4].map(i=>`<span>${i<hearts?"❤️":"🖤"}</span>`).join("");$("chancesChip").textContent=inf()?"♾️":"🎟️ "+SV.chances+"/3";
  const P=daily?{n:"Especialista",c:"#ffd56b"}:PH[phaseOf(curLv)];$("diff").textContent=P.n;$("diff").style.color=P.c;$("left").parentNode.style.color=curPal()[1];$("hc").textContent=SV.hints;if(!tut)$("tip").style.color="";$("sMute").textContent=SV.mute?"🔇 Som: desligado":"🔊 Som: ligado";$("sVib").textContent=SV.vib?"📳 Vibração: ligada":"📳 Vibração: desligada"}
 // ---------- loop ----------
 let introSpin=0;let last=0,T=0;function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last)/1000||0);last=now;T+=dt;if(introSpin>0){yaw+=dt*introSpin;introSpin=Math.max(0,introSpin-dt*2.2)}if(!drag&&tyaw===null&&Math.abs(vyaw)<.01&&!won)yaw+=dt*.04;update(dt);draw(dt,T)}
