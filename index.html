@@ -245,19 +245,18 @@ function drawArrow(a,z,t){const L=a.cells.length,s=a.s,t0=s,t1=s+L-1,c=1/G,HL=.3
  // luz vem de cima/esquerda: a sombra cai no plano para o lado oposto
  const R0=REGS[a.f],sh=vadd(vadd([0,0,0],R0.u,c*.05),R0.v,c*.07);const tail=lift(S[0]&&pts[0]);
  // 1) sombra no plano
- ctx.globalAlpha=A0*.45;ctx.fillStyle="#03040f";ribbon(S,n,c*.105,sh);ctx.fill();head(sh,.02);ctx.fill();disc3(tail,n,D,c*.15,sh);ctx.fill();
+ ctx.globalAlpha=A0*.45;ctx.fillStyle="#03040f";ribbon(S,n,c*.105,sh);ctx.fill();head(sh,.02);ctx.fill();disc3(tail,n,D,c*.105,sh);ctx.fill();
  // 2) brilho neon
- if(z>.12){ctx.globalAlpha=A0*(isHint?.28+.18*Math.sin(t*8):a.mode===2?.3:.15);ctx.fillStyle=Cc[0];ribbon(S,n,isHint?c*.24:c*.19);ctx.fill();head(null,.06);ctx.fill();disc3(tail,n,D,c*.2);ctx.fill()}
+ if(z>.12){ctx.globalAlpha=A0*(isHint?.28+.18*Math.sin(t*8):a.mode===2?.3:.15);ctx.fillStyle=Cc[0];ribbon(S,n,isHint?c*.24:c*.19);ctx.fill();head(null,.06);ctx.fill();disc3(tail,n,D,isHint?c*.24:c*.19);ctx.fill()}
  // 3) borda escura do tubo
- ctx.globalAlpha=A0;ctx.fillStyle=shadeHex(Cc[0],.42);ribbon(S,n,c*.098);ctx.fill();head(null,.025);ctx.fill();
+ ctx.globalAlpha=A0;ctx.fillStyle=shadeHex(Cc[0],.42);ribbon(S,n,c*.098);ctx.fill();disc3(tail,n,D,c*.098);ctx.fill();head(null,.025);ctx.fill();
  // 4) corpo com degradê
- const tp=H(HL*.95,0),g0=P[0],gr=ctx.createLinearGradient(g0[0],g0[1],tp[0],tp[1]);gr.addColorStop(0,Cc[0]);gr.addColorStop(1,Cc[1]);ctx.fillStyle=gr;ribbon(S,n,c*.074);ctx.fill();ctx.fillStyle=Cc[1];head();ctx.fill();
+ const tp=H(HL*.95,0),g0=P[0],gr=ctx.createLinearGradient(g0[0],g0[1],tp[0],tp[1]);gr.addColorStop(0,Cc[0]);gr.addColorStop(1,Cc[1]);ctx.fillStyle=gr;ribbon(S,n,c*.074);ctx.fill();ctx.fillStyle=Cc[0];disc3(tail,n,D,c*.074);ctx.fill();ctx.fillStyle=Cc[1];head();ctx.fill();
  // 5) reflexo fino (no lado iluminado do tubo)
  ctx.globalAlpha=A0*.55;ctx.fillStyle="#ffffff";ribbon(S,n,c*.017,vadd(vadd([0,0,0],R0.u,-c*.018),R0.v,-c*.022));ctx.fill();
  const hh=head();ctx.globalAlpha=A0*.45;ctx.beginPath();ctx.moveTo(hh[0][0],hh[0][1]);ctx.lineTo((hh[0][0]+hh[1][0])/2,(hh[0][1]+hh[1][1])/2);ctx.lineTo(hh[2][0],hh[2][1]);ctx.closePath();ctx.fill();
  // 6) cauda: argola deitada na face
- ctx.globalAlpha=A0;ctx.fillStyle=Cc[0];disc3(tail,n,D,c*.14);ctx.fill();ctx.fillStyle="#05061a";disc3(tail,n,D,c*.078);ctx.fill();
- ctx.globalAlpha=1;a._P=P.concat([tp]);a._z=P[P.length-1][2]}
+  ctx.globalAlpha=1;a._P=P.concat([tp]);a._z=P[P.length-1][2]}
 function shadeHex(h,k){const n=parseInt(h.slice(1),16);return`rgb(${(n>>16)*k|0},${(n>>8&255)*k|0},${(n&255)*k|0})`}
 // ---------- lógica de toque ----------
 const parts=[];function burst(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*7,v=40+Math.random()*120;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,t:.8+Math.random()*.4,r:1.5+Math.random()*2.5,c})}}
