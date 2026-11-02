@@ -226,29 +226,38 @@ function draw(dt,t){ctx.clearRect(0,0,Wd,Ht);SC=Math.min(Wd*.95,Ht*.62)*1.75*zoo
  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.t-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=40*dt;if(p.t<=0){parts.splice(i,1);continue}ctx.globalAlpha=Math.min(1,p.t);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}ctx.globalAlpha=1;
  drawTut(t);
  if(flash>0){flash-=dt;ctx.fillStyle=`rgba(255,60,90,${flash*.5})`;ctx.fillRect(0,0,Wd,Ht)}}
-function drawArrow(a,z,t){const L=a.cells.length,s=a.s,t0=s,t1=s+L-1,pts=[pathP(a,t0)];for(let k=Math.floor(t0)+1;k<t1;k++)pts.push(pathP(a,k));
- const hd=pathP(a,t1),D=a.dir.map(x=>x*G),n=REGS[a.f].n,PP=[D[1]*n[2]-D[2]*n[1],D[2]*n[0]-D[0]*n[2],D[0]*n[1]-D[1]*n[0]],c=1/G,HL=.3;pts.push(vadd(hd,D,-c*HL*.55));
- const lift=p=>vadd(p,n,.004);const P=pts.map(p=>proj(lift(p)));const cell=c*SCN*P[0][3];const isHint=a===hintArrow&&hintT>0,bad=a.mode===1&&a.bt>.7;
+function v3sub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]]}function v3len(a){return Math.hypot(a[0],a[1],a[2])}function v3n(a){const l=v3len(a)||1;return[a[0]/l,a[1]/l,a[2]/l]}function v3x(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+// arredonda as dobras no próprio plano da face
+function smooth3(P,r){if(P.length<3)return P.slice();const out=[P[0]];for(let i=1;i<P.length-1;i++){const A=P[i-1],B=P[i],C=P[i+1],l1=v3len(v3sub(B,A)),l2=v3len(v3sub(C,B));const d1=v3n(v3sub(B,A)),d2=v3n(v3sub(C,B));
+  if(Math.abs(d1[0]*d2[0]+d1[1]*d2[1]+d1[2]*d2[2])>.999){out.push(B);continue}const rr=Math.min(r,l1*.5,l2*.5),s=vadd(B,d1,-rr),e=vadd(B,d2,rr);for(let k=0;k<=8;k++){const t=k/8,u=1-t;out.push([u*u*s[0]+2*u*t*B[0]+t*t*e[0],u*u*s[1]+2*u*t*B[1]+t*t*e[1],u*u*s[2]+2*u*t*B[2]+t*t*e[2]])}}
+ out.push(P[P.length-1]);return out}
+// fita no plano da face (largura real em 3D, achata junto com a perspectiva)
+function ribbon(S,n,hw,off){const L=[],Rt=[];for(let i=0;i<S.length;i++){const a=S[Math.max(0,i-1)],b=S[Math.min(S.length-1,i+1)];const tg=v3n(v3sub(b,a)),pp=v3n(v3x(n,tg));const q=off?vadd(S[i],off):S[i];L.push(proj(vadd(q,pp,hw)));Rt.push(proj(vadd(q,pp,-hw)))}
+ ctx.beginPath();L.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));for(let i=Rt.length-1;i>=0;i--)ctx.lineTo(Rt[i][0],Rt[i][1]);ctx.closePath()}
+function disc3(c0,n,u,r,off){const v=v3x(n,u);ctx.beginPath();for(let k=0;k<20;k++){const a=k/20*Math.PI*2;let p=vadd(vadd(c0,u,Math.cos(a)*r),v,Math.sin(a)*r);if(off)p=vadd(p,off);const q=proj(p);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])}ctx.closePath()}
+function drawArrow(a,z,t){const L=a.cells.length,s=a.s,t0=s,t1=s+L-1,c=1/G,HL=.3,n=REGS[a.f].n;const lift=p=>vadd(p,n,.004);
+ const pts=[pathP(a,t0)];for(let k=Math.floor(t0)+1;k<t1;k++)pts.push(pathP(a,k));const hd=pathP(a,t1),D=a.dir.map(x=>x*G),PP=v3x(D,n);pts.push(vadd(hd,D,-c*HL*.5));
+ const S=smooth3(pts.map(lift),c*.34),P=S.map(proj);const isHint=a===hintArrow&&hintT>0,bad=a.mode===1&&a.bt>.7;
  const Cc=bad?["#ff2d55","#ff7a95"]:a.mode===2?["#22e05f","#b6ffc8"]:isHint?["#2fe05a","#8dffa5"]:curPal();
- const fade=a.mode===2?Math.max(0,1-(a.s-(a.exitAt||0))/(L+1)):1;const A0=fade*(.6+.4*z);if(A0<=0)return;
- const lw=Math.max(2.2,cell*.14),rad=cell*.32;
- const path=(ox=0,oy=0)=>{ctx.beginPath();ctx.moveTo(P[0][0]+ox,P[0][1]+oy);for(let i=1;i<P.length-1;i++)ctx.arcTo(P[i][0]+ox,P[i][1]+oy,P[i+1][0]+ox,P[i+1][1]+oy,rad);ctx.lineTo(P[P.length-1][0]+ox,P[P.length-1][1]+oy)};
- const H=(x,y)=>proj(lift(vadd(vadd(hd,D,c*x),PP,c*y)));const tip=H(HL*.9,0),wl=H(-HL*.7,.27),wr=H(-HL*.7,-.27),nk=H(-HL*.35,0);
- const head=(ox=0,oy=0)=>{ctx.beginPath();ctx.moveTo(tip[0]+ox,tip[1]+oy);ctx.lineTo(wl[0]+ox,wl[1]+oy);ctx.quadraticCurveTo(nk[0]+ox,nk[1]+oy,wr[0]+ox,wr[1]+oy);ctx.closePath()};
- ctx.lineCap="round";ctx.lineJoin="round";const so=Math.max(1.5,lw*.45);
- // sombra projetada (dá relevo)
- ctx.globalAlpha=A0*.5;ctx.strokeStyle="#03040f";ctx.fillStyle="#03040f";ctx.lineWidth=lw*1.5;path(so*.6,so);ctx.stroke();head(so*.6,so);ctx.fill();ctx.lineWidth=lw*.8;ctx.stroke();
- // brilho neon
- ctx.globalAlpha=A0*(isHint?.32+.2*Math.sin(t*8):.17);ctx.strokeStyle=Cc[0];ctx.lineWidth=lw*(isHint?4.4:3.4);path();ctx.stroke();ctx.fillStyle=Cc[0];head();ctx.lineWidth=lw*2.2;ctx.stroke();
- // borda escura do tubo
- ctx.globalAlpha=A0;ctx.strokeStyle=shadeHex(Cc[0],.45);ctx.lineWidth=lw*1.25;path();ctx.stroke();head();ctx.fillStyle=shadeHex(Cc[0],.45);ctx.lineWidth=lw*.5;ctx.stroke();ctx.fill();
- // corpo com degradê
- const gr=ctx.createLinearGradient(P[0][0],P[0][1],tip[0],tip[1]);gr.addColorStop(0,Cc[0]);gr.addColorStop(1,Cc[1]);ctx.strokeStyle=gr;ctx.lineWidth=lw;path();ctx.stroke();ctx.fillStyle=Cc[1];head();ctx.fill();
- // reflexo de luz no topo do tubo
- ctx.globalAlpha=A0*.7;ctx.strokeStyle="#ffffff";ctx.lineWidth=lw*.24;path(-lw*.18,-lw*.22);ctx.stroke();ctx.globalAlpha=A0*.55;ctx.fillStyle="#ffffff";ctx.beginPath();ctx.moveTo(tip[0],tip[1]);ctx.lineTo((tip[0]+wl[0])/2,(tip[1]+wl[1])/2);ctx.lineTo(nk[0],nk[1]);ctx.closePath();ctx.fill();
- // cauda
- ctx.globalAlpha=A0;ctx.fillStyle="#05061a";ctx.beginPath();ctx.arc(P[0][0],P[0][1],lw*.95,0,7);ctx.fill();ctx.strokeStyle=Cc[0];ctx.lineWidth=lw*.45;ctx.stroke();
- ctx.globalAlpha=1;a._P=P.concat([tip]);a._z=P[P.length-1][2]}
+ const fade=a.mode===2?Math.max(0,1-(a.s-(a.exitAt||0))/(L+1)):1;const A0=fade*(.55+.45*Math.min(1,z*1.4));if(A0<=0)return;
+ const H=(x,y,off)=>{let p=lift(vadd(vadd(hd,D,c*x),PP,c*y));if(off)p=vadd(p,off);return proj(p)};
+ const head=(off,grow=0)=>{const tp=H(HL*.95+grow,0,off),wl=H(-HL*.65-grow*.6,.28+grow,off),wr=H(-HL*.65-grow*.6,-.28-grow,off),nk=H(-HL*.32,0,off);ctx.beginPath();ctx.moveTo(tp[0],tp[1]);ctx.lineTo(wl[0],wl[1]);ctx.quadraticCurveTo(nk[0],nk[1],wr[0],wr[1]);ctx.closePath();return[tp,wl,nk]};
+ // luz vem de cima/esquerda: a sombra cai no plano para o lado oposto
+ const R0=REGS[a.f],sh=vadd(vadd([0,0,0],R0.u,c*.05),R0.v,c*.07);const tail=lift(S[0]&&pts[0]);
+ // 1) sombra no plano
+ ctx.globalAlpha=A0*.45;ctx.fillStyle="#03040f";ribbon(S,n,c*.105,sh);ctx.fill();head(sh,.02);ctx.fill();disc3(tail,n,D,c*.15,sh);ctx.fill();
+ // 2) brilho neon
+ if(z>.12){ctx.globalAlpha=A0*(isHint?.28+.18*Math.sin(t*8):a.mode===2?.3:.15);ctx.fillStyle=Cc[0];ribbon(S,n,isHint?c*.24:c*.19);ctx.fill();head(null,.06);ctx.fill();disc3(tail,n,D,c*.2);ctx.fill()}
+ // 3) borda escura do tubo
+ ctx.globalAlpha=A0;ctx.fillStyle=shadeHex(Cc[0],.42);ribbon(S,n,c*.098);ctx.fill();head(null,.025);ctx.fill();
+ // 4) corpo com degradê
+ const tp=H(HL*.95,0),g0=P[0],gr=ctx.createLinearGradient(g0[0],g0[1],tp[0],tp[1]);gr.addColorStop(0,Cc[0]);gr.addColorStop(1,Cc[1]);ctx.fillStyle=gr;ribbon(S,n,c*.074);ctx.fill();ctx.fillStyle=Cc[1];head();ctx.fill();
+ // 5) reflexo fino (no lado iluminado do tubo)
+ ctx.globalAlpha=A0*.55;ctx.fillStyle="#ffffff";ribbon(S,n,c*.017,vadd(vadd([0,0,0],R0.u,-c*.018),R0.v,-c*.022));ctx.fill();
+ const hh=head();ctx.globalAlpha=A0*.45;ctx.beginPath();ctx.moveTo(hh[0][0],hh[0][1]);ctx.lineTo((hh[0][0]+hh[1][0])/2,(hh[0][1]+hh[1][1])/2);ctx.lineTo(hh[2][0],hh[2][1]);ctx.closePath();ctx.fill();
+ // 6) cauda: argola deitada na face
+ ctx.globalAlpha=A0;ctx.fillStyle=Cc[0];disc3(tail,n,D,c*.14);ctx.fill();ctx.fillStyle="#05061a";disc3(tail,n,D,c*.078);ctx.fill();
+ ctx.globalAlpha=1;a._P=P.concat([tp]);a._z=P[P.length-1][2]}
 function shadeHex(h,k){const n=parseInt(h.slice(1),16);return`rgb(${(n>>16)*k|0},${(n>>8&255)*k|0},${(n&255)*k|0})`}
 // ---------- lógica de toque ----------
 const parts=[];function burst(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*7,v=40+Math.random()*120;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-30,t:.8+Math.random()*.4,r:1.5+Math.random()*2.5,c})}}
