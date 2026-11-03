@@ -163,14 +163,15 @@ h1{font:400 26px var(--display);margin:0;text-align:center;letter-spacing:.02em}
   <div class="pawns" id="introPawns"></div>
   <div class="menu">
     <button class="btn" id="mLocal" type="button">🎲 Jogar neste celular</button>
-    <button class="btn alt" id="mNet" type="button">📶 Jogar sem internet<small>cada um no seu celular, com sala e senha</small></button>
+    <button class="btn alt" id="mOn" type="button" style="background:linear-gradient(180deg,#5fd88a,#2fb35a);box-shadow:0 5px 0 #1d7a3c">🌐 Jogar online<small>celular, iPhone ou notebook · sala com senha</small></button>
+    <button class="btn ghost" id="mNet" type="button">📶 Sem internet (só Android com Android)</button>
     <button class="btn ghost" id="mCont" type="button" hidden>▶ Continuar partida</button>
     <button class="btn ghost" id="mRules" type="button">📜 Regras</button>
   </div>
   <p class="nonet" id="noNet" hidden>O modo sem internet funciona no app Android do Corrida dos Peões (Bluetooth / Wi-Fi direto). Aqui no navegador, jogue todos no mesmo celular.</p>
 </div></div>
 <div class="ov" id="netPick" hidden><div class="card">
-  <h2>📶 Jogar sem internet</h2><p>Cada um no seu celular Android, um perto do outro.</p>
+  <h2 id="pickT">📶 Jogar sem internet</h2><p id="pickP">Cada um no seu celular Android, um perto do outro.</p>
   <button class="btn" id="netHost" type="button">👑 Criar sala</button>
   <button class="btn ghost" id="netJoin" type="button">🔑 Entrar com senha</button>
   <button class="btn ghost" id="netBack" type="button">Voltar</button>
@@ -405,8 +406,29 @@ musName="intro";
 <script>
 // ---------- multijogador sem internet (Bluetooth / Wi-Fi Direct via app Android), com sala e senha ----------
 (function(){
-const A=window.NearbyAndroid;if(!A)return;
-const NET={role:null,peers:[],me:-1,name:"",ch:0,code:"",started:false};window.NET=NET;
+let A=null;
+const NET={role:null,peers:[],me:-1,name:"",ch:0,code:"",started:false,mode:""};window.NET=NET;
+// modo online (internet): WebRTC com PeerJS; mesmo formato de eventos da ponte Android
+function makeOnline(){const PFX="corridapeoes-v1-";let peer=null,conns={},myName="";const emit=o=>window.onNearby&&window.onNearby(o);
+ function wire(c){c.on("data",d=>emit({type:"msg",id:c.peer,data:String(d)}));c.on("close",()=>{if(conns[c.peer]){delete conns[c.peer];emit({type:"disconnected",id:c.peer})}});c.on("error",()=>{})}
+ return{host(n){this.stop();peer=new Peer(PFX+NET.code);
+   peer.on("connection",c=>{c.on("open",()=>{conns[c.peer]=c;emit({type:"connected",id:c.peer,name:(c.metadata&&c.metadata.name)||"Jogador"})});wire(c)});
+   peer.on("error",e=>emit({type:"error",msg:e.type==="unavailable-id"?"Essa senha já está em uso. Toque em Cancelar e crie a sala de novo.":"Sem conexão com a internet ("+e.type+")"}));
+   peer.on("disconnected",()=>{try{peer.reconnect()}catch(x){}})},
+  join(n){myName=n;this.stop();peer=new Peer();peer.on("open",()=>emit({type:"found",id:"H",name:"|"+hc(NET.code)}));
+   peer.on("error",e=>emit({type:"error",msg:e.type==="peer-unavailable"?"Sala não encontrada. Confira a senha e se a sala ainda está aberta.":"Sem conexão com a internet ("+e.type+")"}))},
+  connect(){const c=peer.connect(PFX+NET.code,{metadata:{name:myName},reliable:true});c.on("open",()=>{conns[c.peer]=c;emit({type:"connected",id:c.peer})});wire(c)},
+  send(to,m){(to==="*"?Object.values(conns):[conns[to]]).forEach(c=>{try{if(c&&c.open)c.send(m)}catch(x){}})},
+  disconnect(id){const c=conns[id];if(c){delete conns[id];try{c.close()}catch(x){}}},
+  stop(){try{if(peer)peer.destroy()}catch(x){}peer=null;conns={}}}}
+let ONLINE=null;
+function loadPeer(cb){if(window.Peer)return cb();const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";s.onload=cb;
+ s.onerror=()=>{$("noNet").textContent="Não consegui conectar. Confira a internet e tente de novo.";$("noNet").hidden=false};document.head.appendChild(s)}
+function pick(mode){NET.mode=mode;A=mode==="on"?(ONLINE=ONLINE||makeOnline()):window.NearbyAndroid;
+ $("pickT").textContent=mode==="on"?"🌐 Jogar online":"📶 Jogar sem internet";$("pickP").textContent=mode==="on"?"Cada um no seu aparelho (Android, iPhone ou notebook), com internet.":"Cada um no seu celular Android, um perto do outro.";
+ $("intro").hidden=true;$("netPick").hidden=false}
+$("mOn").onclick=()=>{ac();if(!mus)music("intro");$("noNet").hidden=true;loadPeer(()=>pick("on"))};
+$("mNet").onclick=()=>{ac();if(!mus)music("intro");if(window.NearbyAndroid)pick("bt");else{$("noNet").textContent="O modo sem internet só funciona no app Android, entre dois Androids. Para jogar com iPhone ou notebook, use Jogar online.";$("noNet").hidden=false}};
 const send=(to,o)=>{try{A.send(to,JSON.stringify(o))}catch(e){}};
 const hc=s=>{let x=7;for(const c of String(s))x=(x*31+c.charCodeAt(0))%46649;return x.toString(36)};
 try{$("netName").value=localStorage.getItem("ludo_nome")||"";NET.ch=+(localStorage.getItem("ludo_ch")||0)}catch(e){}
@@ -454,7 +476,7 @@ window.onNearby=function(e){
    else if(m.t==="roll"&&G&&!G.over&&cur().net===e.id&&!busy)roll()}
  }else if(NET.role==="join"){
   if(e.type==="found"){const [nm,h]=String(e.name||"").split("|");
-   if(h===hc(NET.code)&&!NET.connecting){NET.connecting=true;$("netInfo").textContent=`Sala de ${nm} encontrada! Entrando…`;if(A.connect)A.connect(e.id)}
+   if(h===hc(NET.code)&&!NET.connecting){NET.connecting=true;$("netInfo").textContent=nm?`Sala de ${nm} encontrada! Entrando…`:"Sala encontrada! Entrando…";if(A.connect)A.connect(e.id)}
    else if(!NET.connecting){$("netInfo").textContent=`Achei a sala de ${nm}, mas a senha não é dela. Confira a senha.`;$("netGo").disabled=false}}
   else if(e.type==="connected"){NET.inRoom=true;send("*",{t:"hi",c:NET.code,ch:NET.ch})}
   else if(e.type==="disconnected"){NET.inRoom=false;if(NET.started){say("A conexão com a sala caiu.");$("die").disabled=true}else if(!/Senha|cheia/.test($("netInfo").textContent))$("netInfo").textContent="A conexão caiu. Tente de novo.";$("netGo").disabled=false}
@@ -473,7 +495,7 @@ window.onNearby=function(e){
     _layout();drawScore();_say(m.msg);_face(m.face);fixDie();
     if(G.over&&!wasOver){const w=G.pl.find(p=>p.pos>=N);if(w)celebrate(w)}}
   }}
- if(e.type==="error")$("netInfo").textContent="Erro: "+e.msg;
+ if(e.type==="error"){$("netInfo").textContent=e.msg;if(NET.role==="join"&&!NET.started){$("netGo").disabled=false;NET.connecting=false}}
 };
 window.onRoomChange=()=>{if(NET.role==="host"&&NET.started&&G&&!G.over){G.cfg=JSON.parse(JSON.stringify(cfg));sync()}};
 $("again").addEventListener("click",()=>{if(NET.role==="join"&&NET.started){$("winOv").hidden=true}else if(NET.role==="host"&&NET.started){setTimeout(()=>{G.pl.forEach(p=>{if(p.i>0&&NET.peers.filter(x=>x.ok)[p.i-1])p.net=NET.peers.filter(x=>x.ok)[p.i-1].id});sync()},50)}});
