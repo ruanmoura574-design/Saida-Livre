@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -18,6 +19,9 @@ import androidx.webkit.WebViewAssetLoader
 class MainActivity : Activity() {
     private lateinit var web: WebView
     private lateinit var bridge: NearbyBridge
+    private var usingLocal = false
+    private val ONLINE = "https://ruanmoura574-design.github.io/Saida-Livre/corrida/"
+    private val LOCAL = "https://appassets.androidplatform.net/assets/index.html"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +35,10 @@ class MainActivity : Activity() {
         val loader = WebViewAssetLoader.Builder().addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this)).build()
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? = loader.shouldInterceptRequest(request.url)
+            // sem internet: abre a cópia que vem dentro do app
+            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (request.isForMainFrame && !usingLocal) { usingLocal = true; view.loadUrl(LOCAL) }
+            }
         }
         web.webChromeClient = object : WebChromeClient() {
             override fun onPermissionRequest(request: PermissionRequest) { runOnUiThread { request.grant(request.resources) } }
@@ -38,7 +46,8 @@ class MainActivity : Activity() {
         bridge = NearbyBridge(this, web)
         web.addJavascriptInterface(bridge, "NearbyAndroid")
         setContentView(web)
-        web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        // abre sempre a versão mais nova do site, assim o jogo se atualiza sozinho
+        web.loadUrl(ONLINE)
         askPermissions()
     }
 
