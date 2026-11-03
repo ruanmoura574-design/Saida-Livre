@@ -107,6 +107,7 @@ h1{font:400 26px var(--display);margin:0;text-align:center;letter-spacing:.02em}
 .btn.ghost{background:#ffffff14;color:#f6ead2;box-shadow:none;font-size:14px;padding:10px}
 .btn.alt{background:linear-gradient(180deg,#5fa8ff,#2f7fe0);color:#fff;box-shadow:0 5px 0 #1d4f8f;display:grid;gap:2px}.btn small{font:700 12px var(--body);opacity:.85}
 .btn:focus-visible,.seg button:focus-visible,.opt:focus-visible,.chb:focus-visible{outline:3px solid #fff;outline-offset:2px}
+#mic[aria-pressed="true"]{background:#2fb35a;color:#fff;animation:pulse 1.6s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 6px #2fb35a44}}
 .bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.bar button{font-size:13px}
 .chars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .chars button{border:2px solid #fff2;background:#0003;border-radius:14px;padding:10px 6px 6px;display:grid;justify-items:center;gap:4px;color:#f6ead2;font:800 12px var(--body);cursor:pointer}
@@ -153,7 +154,8 @@ h1{font:400 26px var(--display);margin:0;text-align:center;letter-spacing:.02em}
   <div class="boardwrap" id="bw"><div class="board" id="board"></div></div>
   <div class="panel"><button class="die" id="die" type="button" aria-label="Jogar o dado"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>
     <div><div class="msg" id="msg" aria-live="polite">Toque no dado para começar</div><div class="hint" id="hint">Passe o celular para quem for jogar</div></div></div>
-  <div class="bar"><button class="btn ghost" id="rules" type="button">📜 Regras</button><button class="btn ghost" id="newg" type="button">🏠 Menu</button><button class="btn ghost" id="snd" type="button">🔊 Som</button></div>
+  <div class="bar"><button class="btn ghost" id="rules" type="button">📜 Regras</button><button class="btn ghost" id="newg" type="button">🏠 Menu</button><button class="btn ghost" id="snd" type="button">🔊 Som</button><button class="btn ghost" id="mic" type="button" hidden aria-pressed="false">🎙️ Ligar microfone</button></div>
+  <p class="hint" id="voiceInfo" hidden style="text-align:center;margin:-4px 0 0"></p>
 </div>
 <div id="vig"></div><canvas id="conf" hidden></canvas>
 
@@ -278,7 +280,7 @@ const SONGS={
  game:{bpm:108,mel:[69,_,72,76,_,74,72,_, 71,_,74,77,_,76,74,_, 72,_,76,79,_,77,76,74, 72,_,71,_,69,_,_,_, 64,_,69,72,_,71,69,_, 67,_,71,74,_,72,71,_, 69,_,72,76,_,74,72,71, 69,_,_,_,_,_,_,_],
   bass:[45,_,57,_,45,_,57,_, 43,_,55,_,43,_,55,_, 41,_,53,_,41,_,53,_, 40,_,52,_,44,_,52,_, 45,_,57,_,45,_,57,_, 43,_,55,_,43,_,55,_, 41,_,53,_,40,_,52,_, 45,_,52,_,45,_,_,_],tm:"triangle"}};
 let musName=null,mus=null;
-function music(name){musName=name;stopMusic();if(muted||!name||!ac()||document.hidden)return;const M=SONGS[name],g=AC.createGain();g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.55,AC.currentTime+.8);g.connect(AC.destination);
+function music(name){musName=name;stopMusic();if(muted||!name||!ac()||document.hidden)return;const M=SONGS[name],g=AC.createGain();g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(window.MUSVOL||.55,AC.currentTime+.8);g.connect(AC.destination);
  const st={g,M,i:0,next:AC.currentTime+.08};st.timer=setInterval(()=>{const d=60/M.bpm/2;while(st.next<AC.currentTime+.2){const k=st.i%M.mel.length,a=M.mel[k],b=M.bass[k%M.bass.length];
   if(a!=null)tone(m2f(a),d*1.6,M.tm,M.tm==="square"?.05:.09,st.next-AC.currentTime,0,g);if(b!=null)tone(m2f(b),d*1.9,"sine",.16,st.next-AC.currentTime,0,g);
   if(k%4===2)tone(2400,.03,"square",.012,st.next-AC.currentTime,0,g);st.next+=d;st.i++}},40);mus=st}
@@ -341,7 +343,7 @@ function cellCenter(pos,pi){const b=board.getBoundingClientRect(),p=rc(pi,pos),e
 function layout(){const by={};G.pl.forEach(p=>{const q=rc(p.i,p.pos),k=q?q.join("_"):"mid"+p.i;(by[k]=by[k]||[]).push(p)});
  Object.values(by).forEach(ps=>{const [x,y]=cellCenter(ps[0].pos,ps[0].i);ps.forEach((p,k)=>{const off=ps.length>1?[[-1.8,-1],[1.8,-1],[-1.8,1.6],[1.8,1.6]][k]:[0,0];const el=$("pw"+p.i);if(!el)return;el.style.left=x+off[0]+"%";el.style.top=y+off[1]+"%";el.classList.toggle("sleep",!!p.skip)})})}
 function drawScore(){const all=seats.map((s,i)=>G.pl.find(p=>p.i===i));
- $("score").innerHTML=all.map((p,i)=>p?`<div class="pl${p===cur()&&!G.over?" on":""}" style="--c:${COLORS[i]}"><span class="mini">${charSVG(p.ch)}</span><b>${p.name}</b><small>${p.cpu?"🤖 ":""}${p.pos>=N?"chegou!":p.pos+"/"+N}${p.skip?" · 💫":""}</small></div>`:`<div class="pl out"><b>—</b><small>fora</small></div>`).join("")}
+ $("score").innerHTML=all.map((p,i)=>p?`<div class="pl${p===cur()&&!G.over?" on":""}" style="--c:${COLORS[i]}"><span class="mini">${charSVG(p.ch)}</span><b>${p.name}</b><small>${p.cpu?"🤖 ":""}${p.pos>=N?"chegou!":p.pos+"/"+N}${p.skip?" · 💫":""}${p.mic?" · 🎙️":""}</small></div>`:`<div class="pl out"><b>—</b><small>fora</small></div>`).join("")}
 function say(t){$("msg").textContent=t}
 function face(n){[...$("die").children].forEach((d,k)=>d.style.visibility=FACES[n].includes(k)?"visible":"hidden")}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -420,7 +422,7 @@ function makeOnline(){const PFX="corridapeoes-v1-";let peer=null,conns={},myName
   connect(){const c=peer.connect(PFX+NET.code,{metadata:{name:myName},reliable:true});c.on("open",()=>{conns[c.peer]=c;emit({type:"connected",id:c.peer})});wire(c)},
   send(to,m){(to==="*"?Object.values(conns):[conns[to]]).forEach(c=>{try{if(c&&c.open)c.send(m)}catch(x){}})},
   disconnect(id){const c=conns[id];if(c){delete conns[id];try{c.close()}catch(x){}}},
-  stop(){try{if(peer)peer.destroy()}catch(x){}peer=null;conns={}}}}
+  stop(){try{if(peer)peer.destroy()}catch(x){}peer=null;conns={}},peer(){return peer}}}
 let ONLINE=null;
 function loadPeer(cb){if(window.Peer)return cb();const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";s.onload=cb;
  s.onerror=()=>{$("noNet").textContent="Não consegui conectar. Confira a internet e tente de novo.";$("noNet").hidden=false};document.head.appendChild(s)}
@@ -454,8 +456,8 @@ $("netGo").onclick=()=>{ac();NET.name=($("netName").value||"").trim()||"Jogador"
   NET.code=c;NET.connecting=false;try{A.stop()}catch(e){}A.join(NET.name);$("netInfo").textContent="Procurando a sala por perto…";$("netGo").disabled=true}};
 function startHost(){const ok=NET.peers.filter(p=>p.ok).slice(0,3);
  seats=[{n:NET.name,t:"h",ch:NET.ch}].concat(ok.map(p=>({n:p.name,t:"h",ch:p.ch})));while(seats.length<4)seats.push({n:"—",t:"off",ch:seats.length});
- NET.started=true;newGame();G.pl.forEach(p=>{if(p.i>0)p.net=ok[p.i-1].id});$("netOv").hidden=true;try{A.stop&&0}catch(e){}
- ok.forEach((p,k)=>send(p.id,{t:"you",i:k+1}));sync()}
+ NET.started=true;newGame();G.pl.forEach(p=>{if(p.i>0)p.net=ok[p.i-1].id;if(NET.mode==="on")p.pid=p.i>0?p.net:"corridapeoes-v1-"+NET.code});$("netOv").hidden=true;try{A.stop&&0}catch(e){}
+ ok.forEach((p,k)=>send(p.id,{t:"you",i:k+1}));sync();voiceUp()}
 // estado do jogo vai do líder para todos
 let lastMsg="",lastFace=1;
 function sync(){if(NET.role!=="host"||!NET.started||!G)return;send("*",{t:"s",G,msg:lastMsg,face:lastFace})}
@@ -473,7 +475,8 @@ window.onNearby=function(e){
   else if(e.type==="msg"){let m;try{m=JSON.parse(e.data)}catch(x){return}const pr=NET.peers.find(x=>x.id===e.id);
    if(m.t==="hi"&&pr){if(m.c!==NET.code){send(e.id,{t:"bad"});NET.peers=NET.peers.filter(x=>x!==pr);setTimeout(()=>A.disconnect(e.id),300);return}
     const fresh=!pr.ok;pr.ok=true;pr.ch=m.ch|0;list();if(fresh){S.good();send(e.id,{t:"ok",host:NET.name})}$("netInfo").textContent=`${NET.peers.filter(p=>p.ok).length} amigo(s) na sala. Toque em Começar quando todos entrarem.`}
-   else if(m.t==="roll"&&G&&!G.over&&cur().net===e.id&&!busy)roll()}
+   else if(m.t==="roll"&&G&&!G.over&&cur().net===e.id&&!busy)roll()
+   else if(m.t==="mic"&&G){const p=G.pl.find(x=>x.net===e.id);if(p){p.mic=!!m.on;drawScore();sync()}}}
  }else if(NET.role==="join"){
   if(e.type==="found"){const [nm,h]=String(e.name||"").split("|");
    if(h===hc(NET.code)&&!NET.connecting){NET.connecting=true;$("netInfo").textContent=nm?`Sala de ${nm} encontrada! Entrando…`:"Sala encontrada! Entrando…";if(A.connect)A.connect(e.id)}
@@ -492,11 +495,30 @@ window.onNearby=function(e){
     if(G.fx&&G.fx.k>lastFx){lastFx=G.fx.k;const t=G.fx.t;if(G.fx.who===NET.me)showFx(t);const sf={red:S.bad,green:S.jump,gold:S.star}[t];if(sf)sf()}
     if(wasOver&&!G.over){makePawns();$("winOv").hidden=true}
     seats=[0,1,2,3].map(i=>{const p=G.pl.find(x=>x.i===i);return p?{n:p.name,t:"h",ch:p.ch}:{n:"—",t:"off",ch:i}});
-    _layout();drawScore();_say(m.msg);_face(m.face);fixDie();
+    _layout();drawScore();_say(m.msg);_face(m.face);fixDie();voiceUp();
     if(G.over&&!wasOver){const w=G.pl.find(p=>p.pos>=N);if(w)celebrate(w)}}
   }}
  if(e.type==="error"){$("netInfo").textContent=e.msg;if(NET.role==="join"&&!NET.started){$("netGo").disabled=false;NET.connecting=false}}
 };
+// ---------- voz (só no modo online): cada jogador liga para os outros ----------
+const V={calls:{},auds:{},track:null,silent:null,on:false};
+function silentTrack(){if(!V.silent){ac();const d=AC.createMediaStreamDestination();const o=AC.createOscillator(),g=AC.createGain();g.gain.value=0;o.connect(g);g.connect(d);o.start();V.silent=d.stream.getAudioTracks()[0]}return V.silent}
+function outTrack(){return V.on&&V.track?V.track:silentTrack()}
+function hear(pid,stream){let a=V.auds[pid];if(!a){a=new Audio();a.autoplay=true;a.setAttribute("playsinline","");V.auds[pid]=a;document.body.appendChild(a)}a.srcObject=stream;a.play().catch(()=>{});
+ window.MUSVOL=.15;if(mus)try{mus.g.gain.setTargetAtTime(.15,AC.currentTime,.3)}catch(x){}
+ $("voiceInfo").hidden=false;$("voiceInfo").textContent="🔊 Voz conectada. Ligue o microfone para falar."}
+function wire(c){V.calls[c.peer]=c;c.on("stream",st=>hear(c.peer,st));c.on("close",()=>{delete V.calls[c.peer];const a=V.auds[c.peer];if(a){a.srcObject=null;a.remove();delete V.auds[c.peer]}});c.on("error",()=>{})}
+let voiceReady=false;
+function voiceUp(){if(NET.mode!=="on"||!NET.started||!G||!A||!A.peer)return;const pr=A.peer();if(!pr||!pr.id)return;$("mic").hidden=false;
+ if(!voiceReady){voiceReady=true;pr.on("call",c=>{c.answer(new MediaStream([outTrack()]));wire(c)})}
+ G.pl.forEach(p=>{if(p.pid&&p.pid!==pr.id&&pr.id<p.pid&&!V.calls[p.pid]&&!p.cpu){try{wire(Object.assign(pr.call(p.pid,new MediaStream([outTrack()])),{}))}catch(x){}}})}
+function setOut(){const t=outTrack();Object.values(V.calls).forEach(c=>{try{c.peerConnection.getSenders().forEach(s=>{if(!s.track||s.track.kind==="audio")s.replaceTrack(t)})}catch(x){}})}
+$("mic").onclick=async()=>{ac();Object.values(V.auds).forEach(a=>a.play().catch(()=>{}));
+ if(!V.on&&!V.track){try{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});V.track=st.getAudioTracks()[0]}catch(x){$("voiceInfo").hidden=false;$("voiceInfo").textContent="Não deu para usar o microfone. Permita o acesso ao microfone nas configurações.";return}}
+ V.on=!V.on;setOut();$("mic").setAttribute("aria-pressed",V.on);$("mic").textContent=V.on?"🎙️ Microfone ligado":"🎙️ Ligar microfone";
+ $("voiceInfo").hidden=false;$("voiceInfo").textContent=V.on?"Todos estão te ouvindo.":"Microfone desligado. Você continua ouvindo os outros.";
+ if(NET.role==="host"){const me=G&&G.pl.find(p=>p.i===0);if(me){me.mic=V.on;drawScore();sync()}}else send("*",{t:"mic",on:V.on})};
+addEventListener("pointerdown",()=>Object.values(V.auds).forEach(a=>{if(a.paused)a.play().catch(()=>{})}));
 window.onRoomChange=()=>{if(NET.role==="host"&&NET.started&&G&&!G.over){G.cfg=JSON.parse(JSON.stringify(cfg));sync()}};
 $("again").addEventListener("click",()=>{if(NET.role==="join"&&NET.started){$("winOv").hidden=true}else if(NET.role==="host"&&NET.started){setTimeout(()=>{G.pl.forEach(p=>{if(p.i>0&&NET.peers.filter(x=>x.ok)[p.i-1])p.net=NET.peers.filter(x=>x.ok)[p.i-1].id});sync()},50)}});
 })();

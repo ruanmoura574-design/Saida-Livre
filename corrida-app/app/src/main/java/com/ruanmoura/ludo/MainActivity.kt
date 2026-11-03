@@ -7,8 +7,13 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.webkit.PermissionRequest
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
 
 class MainActivity : Activity() {
     private lateinit var web: WebView
@@ -22,16 +27,23 @@ class MainActivity : Activity() {
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
         web.settings.mediaPlaybackRequiresUserGesture = false
-        web.webViewClient = WebViewClient()
+        // carrega o jogo de um endereço https local (precisa disso para o microfone funcionar)
+        val loader = WebViewAssetLoader.Builder().addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this)).build()
+        web.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? = loader.shouldInterceptRequest(request.url)
+        }
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onPermissionRequest(request: PermissionRequest) { runOnUiThread { request.grant(request.resources) } }
+        }
         bridge = NearbyBridge(this, web)
         web.addJavascriptInterface(bridge, "NearbyAndroid")
         setContentView(web)
-        web.loadUrl("file:///android_asset/index.html")
+        web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
         askPermissions()
     }
 
     private fun askPermissions() {
-        val list = mutableListOf<String>()
+        val list = mutableListOf(Manifest.permission.RECORD_AUDIO)
         if (Build.VERSION.SDK_INT >= 31) {
             list += Manifest.permission.BLUETOOTH_SCAN
             list += Manifest.permission.BLUETOOTH_ADVERTISE
@@ -45,7 +57,7 @@ class MainActivity : Activity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.any { it != PackageManager.PERMISSION_GRANTED }) {
+        if (permissions.indices.any { permissions[it] != Manifest.permission.RECORD_AUDIO && grantResults[it] != PackageManager.PERMISSION_GRANTED }) {
             bridge.emitError("Permita Bluetooth e Dispositivos próximos nas configurações do app para jogar sem internet.")
         }
     }
