@@ -1,4 +1,4 @@
-const C="saidalivre-v17",FILES=["./","index.html","manifest.webmanifest","privacidade.html","icon-192.png","icon-512.png"];
+const C="saidalivre-v18",FILES=["./","index.html","manifest.webmanifest","privacidade.html","icon-192.png","icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)));self.skipWaiting()});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 // páginas: busca sempre a versão nova na internet; só usa a cópia salva se estiver sem internet
