@@ -24,7 +24,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
 #hint{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:68px;height:68px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#ffd36b,#ff9a1f);box-shadow:0 0 0 6px #ffffff14,0 8px 24px #0008;font-size:30px;cursor:pointer}
 #hint b{position:absolute;right:-4px;top:-4px;background:#ff8a00;color:#fff;font-size:13px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;border:2px solid var(--bg2)}
 #tip{position:fixed;left:0;right:0;bottom:calc(108px + env(safe-area-inset-bottom,0px));text-align:center;color:var(--muted);font-weight:700;font-size:14px;pointer-events:none;transition:opacity .5s;padding:0 16px}
-.ov{position:fixed;inset:0;display:grid;place-items:center;background:#070c18cc;backdrop-filter:blur(6px);z-index:5;padding:16px;text-align:center}
+.ov{position:fixed;inset:0;display:grid;place-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#070c18cc;backdrop-filter:blur(6px);z-index:5;padding:16px;text-align:center}
 .ov[hidden]{display:none}
 .ov h2{font-size:clamp(34px,9vw,56px);margin:0 0 6px;font-weight:900;background:linear-gradient(90deg,#ffe07a,#ff9d0a);-webkit-background-clip:text;background-clip:text;color:transparent}
 .ov p{color:var(--muted);font-weight:700;margin:0 0 22px;max-width:360px}
@@ -96,9 +96,26 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
 .tapopen{color:#ffd27a;font-weight:900;font-size:17px;animation:tapb 1.2s infinite}@keyframes tapb{50%{opacity:.45;transform:translateY(-3px)}}.chestbox{cursor:pointer}
 .prize{display:grid;justify-items:center;gap:4px;margin:0 auto 16px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}.prize b{font-size:22px}.prize small{color:#c9cbf0;font-weight:700}.prize .thumb{width:140px}
 .lbox{display:grid;gap:10px;justify-items:center}.lbtn{width:100%;border:0;border-radius:16px;padding:14px;font:900 17px var(--font);cursor:pointer;color:#13143a;background:#fff;display:grid;gap:2px}.lbtn small{font-weight:700;font-size:13px;opacity:.75}.lbtn.ad{background:linear-gradient(90deg,#7dff8a,#c9ffb0)}.lbtn.shop{background:linear-gradient(90deg,#ffd56b,#ffb52e)}.lbtn.gray{background:#ffffff1a;color:#fff}
+.backTop{position:fixed;z-index:6;left:max(12px,env(safe-area-inset-left,0px));top:calc(12px + env(safe-area-inset-top,0px));border:1px solid #ffffff33;background:#0b1430ee;color:#fff;font:900 16px var(--font);border-radius:999px;padding:10px 16px;cursor:pointer;box-shadow:0 4px 14px #0008}
 .packs{display:grid;gap:10px}.shopH{margin:10px 0 0;font-size:15px;color:#ffd56b;text-align:left}.pack{position:relative;border:2px solid #ffffff22;border-radius:18px;background:#ffffff10;color:#fff;padding:14px 14px 14px 64px;text-align:left;cursor:pointer;display:grid;gap:2px;font-family:var(--font)}.pack b{font-size:18px;padding-right:90px}.pack small{color:#c9cbf0;font-weight:700}
 .pack .pe{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:34px}.pack .pr{position:absolute;right:14px;top:14px;background:#ffc23a;color:#13143a;font-weight:900;border-radius:999px;padding:5px 12px;font-size:15px}
 .pack.best{border-color:#ffd56b;background:linear-gradient(135deg,#ffd56b22,#ff8ad822);box-shadow:0 0 24px #ffd56b44;transform:scale(1.03)}.pack.best .pr{background:#ffd56b}.pack.free .pr{background:#7dff8a}
+/* loja em cartões lado a lado */
+.packs{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px;perspective:600px}
+.packs .shopH{grid-column:1/-1;margin:14px 0 2px;text-align:left;font-size:16px}
+.pack{padding:22px 6px 8px;text-align:center;justify-items:center;align-content:start;gap:4px;border-radius:16px;border:2px solid #3a4a8a;background:linear-gradient(180deg,#2a3a7a,#141c44);box-shadow:inset 0 2px 0 #ffffff22,0 5px 0 #0a0f26,0 8px 16px #0008;min-height:178px}
+.pack:active{transform:translateY(3px);box-shadow:inset 0 2px 0 #ffffff22,0 2px 0 #0a0f26}
+.pack .pe{position:static;transform:none;font-size:44px;line-height:1;width:72px;height:64px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#ffffff2a,transparent 70%);filter:drop-shadow(0 4px 6px #0009);animation:packf 2.4s ease-in-out infinite}
+@keyframes packf{50%{transform:translateY(-4px) scale(1.06)}}
+.pack b{font-size:14px;line-height:1.1;padding:0;min-height:2.2em;display:grid;place-items:center}
+.pack small{font-size:10.5px;line-height:1.2;color:#b9c1f0;min-height:2.4em}
+.pack .pr{position:static;margin-top:auto;width:100%;border-radius:10px;padding:7px 4px;font-size:14px;background:linear-gradient(180deg,#7dff8a,#2fbf4a);color:#06260e;box-shadow:inset 0 -3px 0 #1d8a32,0 2px 0 #0006}
+.pack.best{transform:none;border-color:#ffd56b;background:linear-gradient(180deg,#6a4a12,#2a1a06);box-shadow:inset 0 2px 0 #ffffff33,0 5px 0 #1a0f02,0 0 18px #ffd56b55}
+.pack.best .pr{background:linear-gradient(180deg,#ffe27a,#f2a51f);color:#3a2205;box-shadow:inset 0 -3px 0 #a8650f,0 2px 0 #0006}
+.pack.free{border-color:#2fbf4a}.pack.free .pr{background:linear-gradient(180deg,#5fd8ff,#1f8fd8);color:#fff;box-shadow:inset 0 -3px 0 #135a8a,0 2px 0 #0006}
+.pack[data-pk^="g"] .pe{background:radial-gradient(circle,#5fe8ff55,transparent 70%)}
+.pack .badge{top:-9px;font-size:9.5px;padding:3px 8px;white-space:nowrap}
+@media (max-width:360px){.packs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#ff4d6d;color:#fff;font:900 11px var(--font);font-style:normal;letter-spacing:1px;padding:3px 10px;border-radius:999px}
 .chancesHome{margin:10px 0 4px;color:#c9cbf0;font-weight:800;font-size:14px;text-align:center}
 .inmenu .zoom,.inmenu .top,.inmenu #hint,.inmenu #tip,.inmenu .ib{visibility:hidden}
@@ -151,8 +168,9 @@ html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(ellips
 <div class="ov" id="ovLogin" hidden><div style="max-width:420px;width:100%"><h2 style="font-size:34px">🎁 Prêmio diário</h2><p id="loginSub" style="margin:0 auto 14px"></p><div class="lgrid" id="loginGrid"></div><button class="go" id="loginClaim" type="button" style="margin-top:16px">Pegar prêmio de hoje</button></div></div>
 <div class="ov" id="ovLose" hidden><div style="max-width:380px;width:100%"><div style="font-size:54px">💔</div><h2>Acabaram os corações</h2><p id="loseTxt"></p>
  <div class="lbox" id="loseBtns"></div></div></div>
-<div class="ov" id="ovShop" hidden><div style="max-width:420px;width:100%"><h2 style="font-size:40px">🛒 Loja</h2><p id="shopTxt" style="margin:0 auto 14px"></p>
+<div class="ov" id="ovShop" hidden><button type="button" class="backTop" id="shopBack" aria-label="Voltar">‹ Voltar</button><div style="max-width:520px;width:100%;padding-block:56px 24px"><h2 style="font-size:40px">🛒 Loja</h2><p id="shopTxt" style="margin:0 auto 14px"></p>
  <div class="packs">
+  <h3 class="shopH">⚡ Chances e vidas</h3>
   <button type="button" class="pack" data-pk="recarga"><span class="pe">⚡</span><b>Recarga Rápida</b><small>Devolve as 3 chances na hora, sem esperar</small><span class="pr">R$ 1,99</span></button>
   <button type="button" class="pack best" data-pk="inf24"><i class="badge">MAIS VENDIDO</i><span class="pe">♾️</span><b>Vidas Infinitas 24h</b><small>Jogue sem parar por 24 horas</small><span class="pr">R$ 4,99</span></button>
   <button type="button" class="pack" data-pk="mestre"><span class="pe">👑</span><b>Pacote Mestre</b><small>Vidas infinitas por 7 dias + 10 dicas 💡</small><span class="pr">R$ 9,99</span></button>
@@ -511,7 +529,7 @@ document.querySelector(".packs").onclick=e=>{const b=e.target.closest(".pack");i
  if(k==="c1000"){SV.coins+=1000;done("+1.000 moedas 🪙")}
  if(k==="c3000"){SV.coins+=3000;SV.gems+=20;done("+3.000 moedas e +20 diamantes!")}
  if(k==="mestre"){SV.infUntil=Math.max(now,SV.infUntil||0)+7*864e5;SV.hints+=10;done("Pacote Mestre ativado: 7 dias + 10 dicas!")}};
-$("shopClose").onclick=()=>{$("ovShop").hidden=true};
+$("shopClose").onclick=$("shopBack").onclick=()=>{$("ovShop").hidden=true;sfx.hint()};
 setInterval(()=>{refillCheck();const el=$("shopT");if(el&&SV.refillAt)el.textContent=mmss(SV.refillAt-Date.now());const ch=$("chancesHome");if(ch)ch.textContent=inf()?`♾️ Vidas infinitas: ${mmss(SV.infUntil-Date.now())}`:SV.chances<3&&SV.refillAt?`🎟️ ${SV.chances}/3 chances · voltam em ${mmss(SV.refillAt-Date.now())}`:`🎟️ ${SV.chances}/3 chances`},1000);
 function showTip(s){const el=$("tip");el.textContent=s;el.style.opacity=1;clearTimeout(showTip.t);showTip.t=setTimeout(()=>el.style.opacity=0,2500)}
 function win(){won=true;SV.pend=0;sfx.win();if(daily){SV.daily[daily]=Math.max(SV.daily[daily]||0,starsFor(hearts));save();showWin();return}SV.stars[curLv]=Math.max(SV.stars[curLv]||0,starsFor(hearts));for(let i=0;i<5;i++)setTimeout(()=>burst(Wd/2+(Math.random()-.5)*Wd*.6,Ht*.45+(Math.random()-.5)*Ht*.4,pick(["#ffc23a","#ff8a00","#7dff8a","#ffd36b"])),i*120);
