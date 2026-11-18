@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Comanda Online</title>
+<meta name="theme-color" content="#1c1613">
+<meta name="description" content="Comanda digital para restaurantes: garçom, preparo e caixa conectados no celular.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* layout: uma tela por função; barra fixa no topo, lista rolando, ação principal fixa embaixo */
+:root{
+  --coal:#120e0c;--coal2:#1c1613;--coal3:#2a211c;--coal4:#352a23;--line:#3d3029;
+  --ash:#f4ece5;--ash2:#b9aa9e;--ash3:#8a7b70;
+  --ember:#ff6a13;--fire:#e8430a;--gold:#ffc24a;--ok:#3ddc84;--warn:#ffb020;--bad:#ff5a4f;--sky:#5cc8ff;
+  --display:"Anton","Impact","Arial Narrow",sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Barlow","Segoe UI",Roboto,Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html,body{background:var(--coal);color:var(--ash)}
+body{margin:0;padding-bottom:env(safe-area-inset-bottom,0px);font:500 16px/1.4 var(--body);-webkit-tap-highlight-color:transparent;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--coal2)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--coal2);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:10px;min-height:56px;padding-block:6px}
+.brand{font:400 22px/1 var(--display);letter-spacing:.02em;text-transform:uppercase;white-space:nowrap}
+.brand span{color:var(--ember)}
+.rolebtn{margin-left:auto;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--coal3);border-radius:99px;padding:6px 12px;font:700 15px var(--cond);letter-spacing:.06em;text-transform:uppercase;min-height:40px}
+.sync{width:10px;height:10px;border-radius:50%;background:var(--ash3);flex:none}
+.sync.on{background:var(--ok)}.sync.wait{background:var(--warn)}.sync.local{background:var(--sky)}
+.note{font-size:13px;color:var(--ash2)}
+.banner{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:#5cc8ff14;border:1px solid #5cc8ff44;color:var(--ash);font-size:14px}
+.banner.err{background:#ff5a4f14;border-color:#ff5a4f55}
+main{padding-block:14px 120px}
+h2.sec{font:400 26px/1 var(--display);text-transform:uppercase;letter-spacing:.02em;margin:18px 0 10px;display:flex;align-items:baseline;gap:10px}
+h2.sec small{font:600 14px var(--cond);letter-spacing:.08em;color:var(--ash2)}
+/* escolher função */
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px;margin-top:8px}
+.role{display:grid;gap:4px;text-align:left;border:1px solid var(--line);background:var(--coal2);border-radius:16px;padding:18px 16px;min-height:110px}
+.role b{font:400 30px/1 var(--display);text-transform:uppercase;letter-spacing:.02em}
+.role span{color:var(--ash2);font-size:15px}
+.role:active{background:var(--coal3)}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d-churrasqueira{background:var(--ember)}.d-cozinha{background:var(--gold)}.d-bebidas{background:var(--sky)}.d-garcom{background:var(--ok)}.d-caixa{background:var(--ash)}
+/* mesas */
+.mesas{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:10px}
+.mesa{position:relative;display:grid;align-content:start;gap:2px;border:1px solid var(--line);background:var(--coal2);border-radius:14px;padding:10px 10px 12px;min-height:96px;text-align:left}
+.mesa .num{font:400 34px/1 var(--display)}
+.mesa .st{font:700 14px var(--cond);letter-spacing:.04em;color:var(--ash3);text-transform:uppercase}
+.mesa.occ{background:#ff6a1318;border-color:#ff6a1388}
+.mesa.occ .st{color:var(--gold)}
+.mesa .t{font-size:12px;color:var(--ash2)}
+.mesa .flag{position:absolute;top:8px;right:8px;font:800 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:2px 7px}
+.flag.ready{background:var(--ok);color:#06260e}.flag.bill{background:var(--gold);color:#2a1600}
+/* cartões de pedido pronto (garçom) */
+.ready-list{display:grid;gap:8px}
+.rd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#3ddc8412;border:1px solid #3ddc8466;border-radius:14px;padding:10px 12px}
+.rd b{font:400 22px/1 var(--display);text-transform:uppercase}
+.rd p{margin:2px 0 0;font-size:15px}
+/* botões */
+.btn{border:0;border-radius:12px;padding:12px 16px;min-height:46px;font:800 16px var(--cond);letter-spacing:.06em;text-transform:uppercase;background:var(--coal4);color:var(--ash)}
+.btn.pri{background:var(--ember);color:#1d0a00}
+.btn.ok{background:var(--ok);color:#06260e}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.bad{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.5}
+/* mesa aberta (garçom) */
+.mhead{display:flex;align-items:center;gap:10px;margin-top:4px}
+.back{white-space:nowrap;flex:none;border:1px solid var(--line);background:var(--coal2);border-radius:12px;min-height:44px;padding:0 12px;font:700 15px var(--cond);text-transform:uppercase;letter-spacing:.06em}
+.mhead h1{font:400 30px/1 var(--display);text-transform:uppercase;margin:0;white-space:nowrap}
+.mhead .tot{margin-left:auto;text-align:right;font:400 24px/1 var(--display);color:var(--gold)}
+.mhead .tot small{display:block;font:600 12px var(--cond);color:var(--ash2);letter-spacing:.06em;text-transform:uppercase}
+.box{background:var(--coal2);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
+.tk{display:grid;gap:4px;padding:8px 0;border-top:1px solid var(--line)}
+.tk:first-child{border-top:0;padding-top:0}
+.tk .h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:700 14px var(--cond);letter-spacing:.05em;text-transform:uppercase;color:var(--ash2)}
+.pill{display:inline-block;border-radius:99px;padding:2px 9px;font:800 12px var(--cond);letter-spacing:.06em;text-transform:uppercase}
+.p-novo{background:var(--coal4);color:var(--ash)}.p-preparo{background:var(--warn);color:#2b1a00}.p-pronto{background:var(--ok);color:#06260e}.p-entregue{background:transparent;border:1px solid var(--line);color:var(--ash3)}
+.tk .its{font-size:15px}
+.chips{position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:10;display:flex;gap:8px;overflow-x:auto;padding:10px 0;margin-top:8px;background:var(--coal);scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--coal2);border-radius:99px;padding:8px 14px;font:700 15px var(--cond);letter-spacing:.05em;text-transform:uppercase;min-height:40px}
+.cat h3{font:400 22px/1 var(--display);text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.cat h3 small{margin-left:auto;font:600 13px var(--cond);color:var(--ash2);letter-spacing:.06em}
+.grp{font:800 13px var(--cond);letter-spacing:.12em;text-transform:uppercase;color:var(--ember);margin:10px 2px 4px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--line);background:var(--coal2);border-radius:12px;padding:10px 12px;margin-bottom:6px;min-height:52px}
+.item:active{background:var(--coal3)}
+.item b{display:block;font:700 17px/1.15 var(--cond);letter-spacing:.02em;text-transform:uppercase}
+.item small{display:block;color:var(--ash2);font-size:13px}
+.item .ip{font:700 16px var(--cond);color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
+.item .plus{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--ember);color:#1d0a00;font:800 22px/1 var(--body);position:relative}
+.item .plus i{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;border-radius:99px;background:var(--gold);color:#2a1600;font:800 12px/22px var(--body);font-style:normal;text-align:center;padding:0 5px}
+/* barra fixa embaixo */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:25;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(180deg,transparent,var(--coal) 35%)}
+.dock .btn{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;max-width:868px;margin:0 auto;min-height:56px;font-size:18px}
+.dock .cnt{background:#0003;border-radius:99px;padding:2px 10px}
+/* folha (sheet) */
+.sheet{position:fixed;inset:0;z-index:40;background:#000b;display:grid;align-items:end;justify-items:center}
+.sheet .in{width:100%;max-width:620px;max-height:92%;overflow:auto;background:var(--coal2);border-radius:22px 22px 0 0;border-top:3px solid var(--ember);padding:16px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));animation:up .25s ease}
+@keyframes up{from{transform:translateY(30px);opacity:.6}}
+.sheet h3{font:400 28px/1.05 var(--display);text-transform:uppercase;margin:0 46px 12px 0}
+.x{float:right;width:40px;height:40px;border-radius:12px;border:0;background:var(--coal4);font-size:22px}
+.fld{display:grid;gap:6px;margin-top:12px}
+.fld>span{font:700 14px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--ash2)}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{flex:1 1 auto;border:1px solid var(--line);background:var(--coal);border-radius:12px;padding:10px 12px;min-height:46px;font:700 15px var(--cond);letter-spacing:.04em;text-transform:uppercase}
+.seg button[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:#1d0a00}
+.seg.col{flex-direction:column}.seg.col button{text-align:left}
+input[type=text],input[type=number],input[inputmode]{width:100%;background:var(--coal);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--ash);font:500 16px var(--body);min-height:46px}
+.step{display:flex;align-items:center;gap:10px}
+.qb{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--coal3);font:800 20px var(--body)}
+.step b{min-width:28px;text-align:center;font:400 24px var(--display)}
+.dl{display:grid;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dl .r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.dl b{font:700 17px var(--cond);text-transform:uppercase;letter-spacing:.02em}
+.dl small{display:block;color:var(--ash2);font-size:13px}
+.route{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px;font:700 14px var(--cond);letter-spacing:.05em;text-transform:uppercase;color:var(--ash2)}
+/* telas de preparo */
+.queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:12px}
+.tc{display:grid;gap:10px;background:var(--coal2);border:1px solid var(--line);border-radius:16px;padding:14px}
+.tc.new{border-color:var(--ember);animation:pulse 1.2s ease 3}
+@keyframes pulse{50%{background:#ff6a1333}}
+.tc .h{display:flex;align-items:baseline;gap:10px}
+.tc .m{font:400 40px/1 var(--display);text-transform:uppercase}
+.tc .age{margin-left:auto;font:700 16px var(--cond);color:var(--ash2);text-align:right}
+.tc .age.warn{color:var(--warn)}.tc .age.bad{color:var(--bad)}
+.tc ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.tc li{font:700 21px/1.15 var(--cond);letter-spacing:.01em}
+.tc li small{display:block;font:500 15px var(--body);color:var(--ash2)}
+.tc li .ob{display:block;width:fit-content;margin-top:3px;background:var(--gold);color:#2a1600;border-radius:8px;padding:1px 8px;font:700 15px var(--body)}
+.tc .acts{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
+.empty{text-align:center;color:var(--ash2);padding:36px 12px;border:1px dashed var(--line);border-radius:16px}
+.empty b{display:block;font:400 24px var(--display);text-transform:uppercase;color:var(--ash);margin-bottom:4px}
+.done{display:grid;gap:6px}
+.done .r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:12px;font-size:14px;color:var(--ash2)}
+/* caixa */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--line);background:var(--coal2);border-radius:12px;padding:8px 14px;min-height:42px;font:700 15px var(--cond);letter-spacing:.05em;text-transform:uppercase}
+.tab[aria-pressed="true"]{background:var(--ash);color:var(--coal);border-color:var(--ash)}
+.tab i{font-style:normal;background:var(--ember);color:#1d0a00;border-radius:99px;padding:0 7px;margin-left:6px;font-size:13px}
+.acc{display:grid;gap:8px}
+.ac{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--coal2);border-radius:14px;padding:10px 12px;min-height:64px}
+.ac .num{font:400 32px/1 var(--display);min-width:44px}
+.ac .v{font:400 22px var(--display);color:var(--gold)}
+.lines{display:grid}
+.ln{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.ln:first-child{border-top:0}
+.ln .q{font:400 20px var(--display);min-width:30px}
+.ln .v{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ln small{display:block;color:var(--ash2);font-size:13px}
+.ln .qb{width:36px;height:36px;font-size:18px}
+.sum{display:grid;gap:6px;margin-top:10px;padding-top:10px;border-top:2px solid var(--line)}
+.sum .r{display:flex;justify-content:space-between;gap:10px;font-variant-numeric:tabular-nums}
+.sum .big{font:400 30px var(--display);color:var(--gold)}
+.tgl{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:var(--coal);border-radius:12px;padding:8px 12px;min-height:48px;width:100%;text-align:left}
+.tgl .sw{width:44px;height:26px;border-radius:99px;background:var(--coal4);position:relative;flex:none}
+.tgl .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--ash2);transition:left .15s}
+.tgl[aria-pressed="true"] .sw{background:var(--ok)}.tgl[aria-pressed="true"] .sw::after{left:21px;background:#fff}
+.confirm{margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--ember);background:#ff6a1314;display:grid;gap:10px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{background:var(--coal2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.kpi span{display:block;font:700 13px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--ash2)}
+.kpi b{font:400 26px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.item.out{opacity:.55}
+.item.out b{text-decoration:line-through;text-decoration-thickness:2px}
+.item.out .plus{background:var(--coal4);color:var(--ash3)}
+.stk{display:block;font:700 13px var(--cond);letter-spacing:.05em;text-transform:uppercase;color:var(--ash2)}
+.stk.low{color:var(--warn)}.stk.zero{color:var(--bad)}
+.seg button[disabled]{opacity:.45;text-decoration:line-through}
+.sk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.sk:first-child{border-top:0}
+.sk b.n{font:700 17px/1.15 var(--cond);text-transform:uppercase;letter-spacing:.02em}
+.sk .big{font:400 30px/1 var(--display);font-variant-numeric:tabular-nums;min-width:48px;text-align:center}
+.sk .big.zero{color:var(--bad)}.sk .big.low{color:var(--warn)}.sk .big.off{color:var(--ash3);font-size:22px}
+.sk .acts{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.sk .acts .btn{min-height:40px;padding:8px 12px;font-size:14px}
+.cnt-row{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:10px;align-items:center;padding:6px 0}
+.cnt-row span{font:700 16px var(--cond);text-transform:uppercase}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ash);color:var(--coal);border-radius:12px;padding:10px 16px;font:700 15px var(--body);max-width:calc(100% - 32px);box-shadow:0 8px 24px #000a}
+.toast.err{background:var(--bad);color:#fff}
+/* editor do cardápio, planos e assistente inicial */
+.d-atend,.d-garcom{background:var(--ok)}
+.ed-cat{background:var(--coal2);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:12px}
+.ed-cat .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ed-cat .hd b{font:400 22px/1 var(--display);text-transform:uppercase}
+.ed-cat .hd .note{flex:1 1 auto}
+.ed-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--coal);border-radius:12px;padding:10px 12px;margin-top:6px;min-height:50px}
+.ed-row b{display:block;font:700 16px/1.15 var(--cond);text-transform:uppercase;letter-spacing:.02em}
+.ed-row small{display:block;color:var(--ash2);font-size:13px}
+.ed-row .ip{font:700 16px var(--cond);color:var(--gold);white-space:nowrap}
+.ed-row.off b{text-decoration:line-through;color:var(--ash3)}
+.mini{min-height:38px!important;padding:6px 12px!important;font-size:14px!important}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px}
+.tag{font:700 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:99px;padding:1px 7px;color:var(--ash2)}
+textarea{width:100%;min-height:90px;background:var(--coal);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--ash);font:500 15px/1.4 var(--body);resize:vertical}
+input[type=password]{width:100%;background:var(--coal);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--ash);font:500 16px var(--body);min-height:46px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;margin-top:10px}
+.plan{background:var(--coal);border:1px solid var(--line);border-radius:14px;padding:12px}
+.plan.cur{border-color:var(--ember);background:#ff6a1312}
+.plan h4{margin:0;font:400 22px/1 var(--display);text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.plan h4 span{color:var(--gold)}
+.plan ul{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--ash2);display:grid;gap:3px}
+.plan .now{display:inline-block;margin-top:8px;font:800 12px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
+.banner.warn{background:#ffb02014;border-color:#ffb02088}
+.adm-sec{margin-top:6px}
+.lock-ic{font-size:40px;line-height:1;margin-bottom:6px}
+.per{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}
+.per button{border:1px solid var(--line);background:var(--coal2);border-radius:99px;padding:6px 12px;min-height:38px;font:700 14px var(--cond);letter-spacing:.05em;text-transform:uppercase}
+.per button[aria-pressed="true"]{background:var(--ash);color:var(--coal);border-color:var(--ash)}
+.item[disabled]{cursor:not-allowed}
+.brand{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.brand #brandName{display:inline!important;color:var(--ash)}
+</style>
+</head><body>
+<header class="top"><div class="wrap">
+  <div class="brand"><span id="brandName">Comanda</span> <span id="brandSub">Online</span></div>
+  <button class="rolebtn" type="button" id="roleBtn" hidden><span class="sync" id="sync"></span><span id="roleName"></span></button>
+</div></header>
+<main class="wrap" id="app" aria-live="polite">
+  <div class="empty" style="margin-top:24px"><b>Conectando…</b>Carregando a comanda.</div>
+</main>
+<div id="dock"></div>
+<div class="sheet" id="sheet" hidden><div class="in" role="dialog" aria-modal="true" id="sheetIn"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+"use strict";
+/* ================= Comanda Online =================
+   Um app para vários estabelecimentos. Cada casa tem um código (separa os dados no banco)
+   e uma licença assinada que diz o plano e até quando ele vale. */
+const SUPORTE_WA="5562994727541";
+const PUBKEY={kty:"EC",crv:"P-256",x:"0MuiQKyAGD2OWTo1MBNIpUmYj9f0UUS9UFSyGYVLyR4",y:"g8R7fCDTEV0MAIAj8PxK2v1MFMa3T8WolLMmE3PQTY4"};
+const PLANOS={
+  basico:{n:"Básico",preco:15,itens:["Cardápio próprio, você mesmo edita","Mesas e comandas","Garçom lança o pedido","Pedido aparece no celular de quem prepara","Fechar conta com o total, 10% e divisão"]},
+  inter:{n:"Intermediário",preco:25,itens:["Tudo do Básico","Setores separados (cozinha, churrasqueira, bar…)","Celulares ilimitados conectados","Som e notificação a cada pedido","Caixa com Pix, cartão e dinheiro (troco)","Caixa do dia"]},
+  completo:{n:"Completo",preco:50,itens:["Tudo do Intermediário","Estoque com baixa automática e item esgotado","Senha do dono para o faturamento","Faturamento escondido dos funcionários","Relatórios: ontem, 7 e 30 dias, mais vendidos"]}
+};
+const FEATS={
+  basico:{setores:0,som:0,caixa:0,dia:0,estoque:0,dono:0,rel:0},
+  inter:{setores:1,som:1,caixa:1,dia:1,estoque:0,dono:0,rel:0},
+  completo:{setores:1,som:1,caixa:1,dia:1,estoque:1,dono:1,rel:1}
+};
+let F=FEATS.basico;
+
+/* ================= utilidades ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const brl=v=>"R$ "+(Math.round((+v||0)*100)/100).toFixed(2).replace(".",",");
+const sumItens=its=>(its||[]).reduce((a,i)=>a+i.p*i.q,0);
+const z2=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+z2(d.getMonth()+1)+"-"+z2(d.getDate());
+const today=()=>ymd(new Date());
+// dia de trabalho: até as 6h da manhã ainda conta como o dia anterior
+const workday=(off)=>ymd(new Date(Date.now()-6*3600e3-(off||0)*864e5));
+const dmy=s=>s?s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4):"";
+const hhmm=t=>{const d=new Date(t);return z2(d.getHours())+":"+z2(d.getMinutes())};
+function ago(t){const m=Math.max(0,Math.floor((Date.now()-t)/60000));if(m<1)return"agora";if(m<60)return"há "+m+" min";return"há "+Math.floor(m/60)+"h"+z2(m%60)}
+const mins=t=>(Date.now()-t)/60000;
+let toastT;function toast(msg,err){const t=$("toast");t.textContent=msg;t.className="toast"+(err?" err":"");t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2800)}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const sid6=()=>Math.random().toString(36).slice(2,8);
+const money=v=>{const n=parseFloat(String(v).replace(/[^\d,.-]/g,"").replace(/\.(?=\d{3}(\D|$))/g,"").replace(",","."));return Number.isFinite(n)&&n>=0&&n<100000?Math.round(n*100)/100:null};
+const num=v=>{const n=parseInt(String(v).trim(),10);return Number.isFinite(n)&&n>=0&&n<=99999?n:null};
+const waLink=t=>"https://wa.me/"+SUPORTE_WA+"?text="+encodeURIComponent(t);
+
+/* ================= banco de dados (Firebase) =================
+   Enquanto apiKey estiver vazio, roda em modo teste, só neste aparelho. */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyBs6XpI7Iu_in9CHU1PfuwIxj1sQTyaa2A",
+  authDomain:"comanda-gbbrasa.firebaseapp.com",
+  projectId:"comanda-gbbrasa",
+  storageBucket:"comanda-gbbrasa.firebasestorage.app",
+  messagingSenderId:"861719304220",
+  appId:"1:861719304220:web:4fcb42056c1559d43327d9"
+};
+const S={mode:null};
+const LOCAL={data:{},subs:[]};
+function localLoad(){try{LOCAL.data=JSON.parse(localStorage.getItem("co_local_"+CODE)||"{}")}catch(e){LOCAL.data={}}}
+function localSave(){try{localStorage.setItem("co_local_"+CODE,JSON.stringify(LOCAL.data))}catch(e){}}
+let bc=null;try{bc=new BroadcastChannel("co")}catch(e){}
+if(bc)bc.onmessage=e=>{if(e.data&&e.data.code===CODE&&e.data.d)LOCAL.data=e.data.d;else localLoad();LOCAL.subs.forEach(s=>s.fire())};
+function localEmit(){localSave();if(bc)try{bc.postMessage({code:CODE,d:LOCAL.data})}catch(e){}setTimeout(()=>LOCAL.subs.forEach(s=>s.fire()),0)}
+function splitPath(p){const a=p.split("/");return[a.slice(0,-1).join("/"),a[a.length-1]]}
+let CODE="",HASHLIC="";
+function readCode(){
+  const h=location.hash||"";const m=h.match(/loja=([A-Za-z0-9_-]{8,60})/),l=h.match(/lic=([A-Za-z0-9_.-]{20,})/);
+  if(m){if(ls("co_loja")&&ls("co_loja")!==m[1]){ls("co_role",null);ls("co_k",null)}ls("co_loja",m[1])}
+  if(l)HASHLIC=l[1];
+  if(m||l)try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  return ls("co_loja")||"";
+}
+async function initStore(){
+  CODE=readCode();
+  if(!FIREBASE_CONFIG.apiKey){S.mode="local";localLoad();return}
+  if(!window.firebase){S.mode="fail";S.why="offline";return}
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    S.fs=firebase.firestore();
+    try{await S.fs.enablePersistence({synchronizeTabs:true})}catch(e){}
+    await new Promise((res,rej)=>{const un=firebase.auth().onAuthStateChanged(u=>{un();if(u)res();else firebase.auth().signInAnonymously().then(res,rej)})});
+    S.mode="fb";
+  }catch(e){S.mode="fail";S.why=(e&&e.code)||"erro"}
+}
+const FP=p=>"lojas/"+CODE+"/"+p;
+const ROWS=s=>s.docs.map(d=>Object.assign({},d.data(),{_id:d.id}));
+function watch(col,cb,where){
+  if(S.mode==="fb"){let q=S.fs.collection(FP(col));if(where)q=q.where(where[0],"==",where[1]);return q.onSnapshot({includeMetadataChanges:true},s=>cb(ROWS(s),s.metadata),e=>dbError(e))}
+  const sub={fire(){const m=LOCAL.data[col]||{};cb(Object.keys(m).map(id=>Object.assign({},m[id],{_id:id})).filter(d=>!where||d[where[0]]===where[1]),{fromCache:false})}};
+  LOCAL.subs.push(sub);setTimeout(()=>sub.fire(),0);return()=>{LOCAL.subs=LOCAL.subs.filter(x=>x!==sub)};
+}
+function watchDoc(path,cb){
+  if(S.mode==="fb")return S.fs.doc(FP(path)).onSnapshot({includeMetadataChanges:true},d=>cb(d.exists?d.data():null,d.metadata),e=>dbError(e));
+  const[c,id]=splitPath(path);const sub={fire(){const m=LOCAL.data[c]||{};cb(m[id]?JSON.parse(JSON.stringify(m[id])):null,{fromCache:false})}};
+  LOCAL.subs.push(sub);setTimeout(()=>sub.fire(),0);return()=>{LOCAL.subs=LOCAL.subs.filter(x=>x!==sub)};
+}
+async function getRange(col,field,from,to){
+  if(S.mode==="fb"){const s=await S.fs.collection(FP(col)).where(field,">=",from).where(field,"<=",to).get();return ROWS(s)}
+  const m=LOCAL.data[col]||{};return Object.keys(m).map(id=>Object.assign({},m[id],{_id:id})).filter(d=>d[field]>=from&&d[field]<=to);
+}
+function fire(p){p.catch(writeErr);return Promise.resolve()}
+async function put(path,data){if(S.mode==="fb")return fire(S.fs.doc(FP(path)).set(data));const[c,id]=splitPath(path);(LOCAL.data[c]=LOCAL.data[c]||{})[id]=JSON.parse(JSON.stringify(data));localEmit()}
+async function patch(path,data){if(S.mode==="fb")return fire(S.fs.doc(FP(path)).update(data));const[c,id]=splitPath(path);const m=LOCAL.data[c]||{};if(!m[id])throw{code:"not-found"};Object.assign(m[id],JSON.parse(JSON.stringify(data)));localEmit()}
+async function del(path){if(S.mode==="fb")return fire(S.fs.doc(FP(path)).delete());const[c,id]=splitPath(path);if(LOCAL.data[c])delete LOCAL.data[c][id];localEmit()}
+async function contaAppend(m,base,itens){const path="contas/m"+m;
+  if(S.mode==="fb"){const FV=firebase.firestore.FieldValue;return fire(S.fs.doc(FP(path)).set(Object.assign({},base,{itens:FV.arrayUnion(...itens)}),{merge:true}))}
+  const c=(LOCAL.data.contas=LOCAL.data.contas||{}),d=c["m"+m];
+  if(d){Object.assign(d,base,{abertaEm:d.abertaEm});d.itens=(d.itens||[]).concat(JSON.parse(JSON.stringify(itens)))}else c["m"+m]=Object.assign({},base,{itens:JSON.parse(JSON.stringify(itens))});localEmit()}
+async function contaReplace(m,oldItem,newItem){const path="contas/m"+m;
+  if(S.mode==="fb"){const FV=firebase.firestore.FieldValue,ref=S.fs.doc(FP(path)),b=S.fs.batch();b.update(ref,{itens:FV.arrayRemove(oldItem),atualizado:Date.now()});if(newItem)b.update(ref,{itens:FV.arrayUnion(newItem)});return fire(b.commit())}
+  const d=(LOCAL.data.contas||{})["m"+m];if(!d)throw{code:"not-found"};const j=d.itens.findIndex(x=>JSON.stringify(x)===JSON.stringify(oldItem));if(j<0)return;
+  if(newItem)d.itens.splice(j,1,JSON.parse(JSON.stringify(newItem)));else d.itens.splice(j,1);d.atualizado=Date.now();localEmit()}
+async function add(col,data){if(S.mode==="fb")return fire(S.fs.collection(FP(col)).add(data));(LOCAL.data[col]=LOCAL.data[col]||{})[uid()]=JSON.parse(JSON.stringify(data));localEmit()}
+function writeErr(e){
+  const c=e&&e.code;
+  if(c==="permission-denied")toast("Sem permissão para salvar. Confira o código do estabelecimento.",true);
+  else if(c==="resource-exhausted")toast("O limite de uso de hoje acabou. Fale com o suporte.",true);
+  else if(c==="not-found")toast("Esse pedido já foi fechado em outro celular.",true);
+  else toast("Não deu para salvar. Confira a internet e tente de novo.",true);
+}
+let DBDEAD=false;
+function dbError(e){if(DBDEAD)return;DBDEAD=true;setSync();
+  $("app").insertAdjacentHTML("afterbegin",`<p class="banner err">${e&&e.code==="permission-denied"?"Sem acesso aos pedidos deste estabelecimento. Confira o código.":"A conexão com a comanda caiu. Feche e abra o app de novo."}</p>`)}
+
+/* ================= licença (plano e validade) ================= */
+const b64u=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")+"===".slice((s.length+3)%4)),c=>c.charCodeAt(0));
+let PUBK=null;
+async function verifyLic(str){
+  try{const parts=String(str||"").trim().split(".");if(parts.length!==2)return null;
+    if(!crypto||!crypto.subtle)return null;
+    PUBK=PUBK||await crypto.subtle.importKey("jwk",PUBKEY,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
+    const pb=b64u(parts[0]);
+    if(!await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},PUBK,b64u(parts[1]),pb))return null;
+    const o=JSON.parse(new TextDecoder().decode(pb));
+    if(!o||o.l!==CODE||!FEATS[o.p]||!/^\d{4}-\d{2}-\d{2}$/.test(o.v))return null;
+    o.raw=String(str).trim();return o;
+  }catch(e){return null}
+}
+const dnum=s=>{const[y,m,d]=s.split("-").map(Number);return Math.round(Date.UTC(y,m-1,d)/864e5)};
+function licDias(){return LIC?dnum(LIC.v)-dnum(today()):-999} // 0 = vence hoje
+const TOLER=2; // dias de tolerância depois do vencimento
+const bloqueado=()=>!LIC||licDias()< -TOLER;
+let LIC; // undefined: carregando; null: sem licença
+let LICDOC=undefined,LICKEY=null;
+async function applyLicDoc(){
+  let o=LICDOC&&LICDOC.lic?await verifyLic(LICDOC.lic):null;
+  if(HASHLIC){const h=await verifyLic(HASHLIC);HASHLIC="";
+    if(h&&(!o||(h.e||0)>(o.e||0))){o=h;try{await put("config/licenca",{lic:h.raw,atualizado:Date.now()})}catch(e){}toast(dnum(h.v)<dnum(today())?"Esse código já venceu em "+dmy(h.v)+". Peça a renovação.":"Plano "+PLANOS[h.p].n+" ativado até "+dmy(h.v),dnum(h.v)<dnum(today()))}
+    else if(!h)toast("Esse código de ativação não é deste estabelecimento.",true)}
+  const key=o?o.raw:"";if(LIC!==undefined&&key===LICKEY)return;LICKEY=key;
+  const was=LIC&&LIC.p;LIC=o;F=o?FEATS[o.p]:FEATS.basico;
+  if(was!==(o&&o.p)){buildMenu();if(F.dono&&KVIA==="plain"){setKey("")}}
+  syncPlainKey();if(KEY&&!FECH_UN)startFech();render();
+}
+// link de ativação aberto com a comanda já aberta (só muda o # do endereço)
+addEventListener("hashchange",()=>{const h=location.hash||"";if(!/loja=|lic=/.test(h))return;
+  const m=h.match(/loja=([A-Za-z0-9_-]{8,60})/);if(m&&m[1]!==CODE){location.reload();return}
+  const l=h.match(/lic=([A-Za-z0-9_.-]{20,})/);try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  if(l&&LICDOC!==undefined){HASHLIC=l[1];applyLicDoc()}});
+async function ativarCodigo(txt){
+  const t=String(txt||"").trim();const m=t.match(/lic=([A-Za-z0-9_.-]{20,})/);const code=m?m[1]:t;
+  const lm=t.match(/loja=([A-Za-z0-9_-]{8,60})/);
+  if(lm&&lm[1]!==CODE){toast("Esse link é de outro estabelecimento.",true);return false}
+  const o=await verifyLic(code);if(!o){let outra=false;try{outra=JSON.parse(new TextDecoder().decode(b64u(code.split(".")[0]))).l!==CODE}catch(e){}toast(outra?"Esse código é de outro estabelecimento.":"Código inválido. Confira se copiou tudo.",true);return false}
+  await put("config/licenca",{lic:o.raw,atualizado:Date.now()});toast("Plano "+PLANOS[o.p].n+" ativo até "+dmy(o.v));return true;
+}
+
+/* ================= cardápio (cada casa monta o seu) ================= */
+const PAL=["#ff6a13","#ffc24a","#5cc8ff","#c58bff","#ff6f9a","#3ddc84","#ffe08a","#9be15d"];
+let CARD,CARDJSON=""; // undefined: carregando; null: ainda não criado
+let CAT=[],ITEM={},SETORES=[],SETOR={},SCOR={};
+function buildMenu(){
+  CAT=[];ITEM={};SETOR={};SCOR={};
+  const c=CARD||{setores:[],cats:[]};
+  SETORES=F.setores?((c.setores||[]).filter(s=>s&&s.id&&s.n)):[];
+  if(!SETORES.length)SETORES=[{id:"preparo",n:"Preparo"}];
+  SETORES.forEach((s,i)=>{SETOR[s.id]=s.n;SCOR[s.id]=PAL[i%PAL.length]});
+  (c.cats||[]).forEach(cat=>{if(!cat||!cat.id)return;const setor=SETOR[cat.setor]?cat.setor:SETORES[0].id;
+    const items=(cat.items||[]).filter(it=>it&&it.id&&it.n);
+    CAT.push({id:cat.id,t:cat.t||"Sem nome",setor,items:items.map(it=>it.id)});
+    items.forEach(it=>{const av=F.setores&&it.aviso&&SETOR[it.aviso]&&it.aviso!==setor?it.aviso:null;ITEM[it.id]=Object.assign({},it,{cat:cat.id,setor,aviso:av,p:+it.p||0,sid:F.estoque&&it.est?it.id:null})})});
+}
+const caixaSetores=()=>F.setores?SETORES.filter(s=>s.caixa):[];
+const isCaixaSetor=id=>caixaSetores().some(s=>s.id===id);
+const dot=s=>`<span class="dot" style="background:${SCOR[s]||"var(--ash3)"}"></span>`;
+const MODELOS={
+  restaurante:{n:"Restaurante",d:"Pratos, porções e bebidas",make:()=>({setores:[{id:"cozinha",n:"Cozinha"},{id:"bebidas",n:"Bebidas",caixa:true}],cats:[
+    {id:"c"+sid6(),t:"Pratos",setor:"cozinha",items:[it("Prato feito",25,{d:"Arroz, feijão, salada e carne",opts:[{t:"Feijão",o:["Caldo","Tropeiro"]},{t:"Carne",o:["Bife","Frango","Linguiça"]}]}),it("Marmitex",20,{opts:[{t:"Tamanho",o:["Média","Grande"]}]}),it("Prato executivo",32)]},
+    {id:"c"+sid6(),t:"Porções",setor:"cozinha",items:[it("Batata frita",25),it("Mandioca frita",20),it("Calabresa acebolada",30)]},
+    {id:"c"+sid6(),t:"Bebidas",setor:"bebidas",items:[it("Refrigerante lata",6),it("Refrigerante 2 L",14),it("Suco natural",9),it("Água mineral",4)]}]})},
+  espetinho:{n:"Espetinho e churrasco",d:"Espetos, jantinhas e bebidas",make:()=>({setores:[{id:"churrasqueira",n:"Churrasqueira"},{id:"cozinha",n:"Cozinha"},{id:"bebidas",n:"Bebidas",caixa:true}],cats:[
+    {id:"c"+sid6(),t:"Espetinhos",setor:"churrasqueira",items:[it("Carne",10,{est:true}),it("Frango",10,{est:true}),it("Linguiça",10,{est:true}),it("Queijo coalho",10,{est:true}),it("Coração",10,{est:true})]},
+    {id:"c"+sid6(),t:"Jantinhas",setor:"cozinha",items:[it("Jantinha",25,{aviso:"churrasqueira",d:"Arroz, feijão, mandioca e vinagrete",opts:[{t:"Espeto",o:["Carne","Frango","Linguiça"]},{t:"Feijão",o:["Tropeiro","Caldo"]}]}),it("Mini janta",20,{aviso:"churrasqueira",opts:[{t:"Espeto",o:["Carne","Frango","Linguiça"]}]})]},
+    {id:"c"+sid6(),t:"Porções",setor:"cozinha",items:[it("Mandioca",15),it("Feijão tropeiro",18)]},
+    {id:"c"+sid6(),t:"Bebidas",setor:"bebidas",items:[it("Refrigerante lata",6),it("Cerveja lata",6),it("Cerveja 600 ml",12),it("Água mineral",4)]}]})},
+  lanchonete:{n:"Lanchonete e bar",d:"Lanches, porções e bebidas",make:()=>({setores:[{id:"chapa",n:"Chapa"},{id:"bar",n:"Bar",caixa:true}],cats:[
+    {id:"c"+sid6(),t:"Lanches",setor:"chapa",items:[it("X-Burguer",18,{opts:[{t:"Ponto",o:["Ao ponto","Bem passado"]}]}),it("X-Salada",20),it("X-Bacon",24),it("X-Tudo",30)]},
+    {id:"c"+sid6(),t:"Porções",setor:"chapa",items:[it("Batata frita",25),it("Frango a passarinho",32)]},
+    {id:"c"+sid6(),t:"Bebidas",setor:"bar",items:[it("Refrigerante lata",6),it("Cerveja lata",6),it("Caipirinha",15),it("Dose",8)]}]})},
+  vazio:{n:"Começar do zero",d:"Monto meu cardápio do início",make:()=>({setores:[{id:"cozinha",n:"Cozinha"},{id:"bebidas",n:"Bebidas",caixa:true}],cats:[]})}
+};
+function it(n,p,o){return Object.assign({id:"i"+sid6(),n,p},o||{})}
+
+/* ================= estado ================= */
+let ROLE=ls("co_role")||"";
+let CONFIG={mesas:15,nome:""};
+let CONTAS={},TICKETS=[],FECH=[];
+let READY=false,LOADED={c:false,t:false};
+let VIEW="mesas",CTAB="contas",CMESA=null,ATAB="mesas";
+let PAY={},DRAFT=[],SEEN=null,SEEN_READY=null;
+let ADMIN=false,ADMTAB="cardapio",ADMIN_UNTIL=0;
+let PER="hoje",PERDATA=null;
+function roles(){
+  if(!F.setores)return{atend:{n:"Garçom",d:"Atende as mesas, lança os pedidos e fecha as contas",dot:"var(--ok)"},"s:preparo":{n:"Preparo",d:"Recebe todos os pedidos para preparar",dot:SCOR.preparo}};
+  const r={atend:{n:"Garçom e caixa",d:"Atende, lança os pedidos e fecha as contas",dot:"var(--ok)"},garcom:{n:"Garçom",d:"Só abre as mesas e lança os pedidos",dot:"var(--ok)"}};
+  SETORES.filter(s=>!s.caixa).forEach(s=>{r["s:"+s.id]={n:s.n,d:"Recebe os pedidos de "+s.n.toLowerCase(),dot:SCOR[s.id]}});
+  const cs=caixaSetores().map(s=>s.n.toLowerCase());
+  r.caixa={n:"Caixa",d:"Fecha as contas"+(cs.length?", separa "+cs.join(" e "):"")+" e vê o caixa do dia",dot:"var(--ash)"};
+  return r;
+}
+const roleSetor=r=>r&&r.startsWith("s:")?r.slice(2):null;
+const isCaixaRole=r=>r==="caixa"||(r==="atend"&&F.caixa);
+const needsKey=r=>r==="caixa"||r==="atend";
+const roleName=()=>{const r=roles()[ROLE];return r?r.n:""};
+
+function setSync(){const s=$("sync");if(!s)return;s.className="sync "+(DBDEAD||S.mode==="fail"?"":S.mode==="local"?"local":READY?"on":"wait");
+  s.title=DBDEAD?"Sem conexão":S.mode==="local"?"Modo teste: só neste aparelho":READY?"Sincronizado":"Conectando"}
+
+/* ================= som e notificação (Intermediário e Completo) ================= */
+let AC=null;
+function audioOn(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}}
+function beep(n){if(!F.som)return;try{if(!AC)return;const t0=AC.currentTime;for(let i=0;i<(n||2);i++){const o=AC.createOscillator(),g=AC.createGain();o.type="square";o.frequency.value=i%2?1320:990;g.gain.setValueAtTime(.0001,t0+i*.22);g.gain.exponentialRampToValueAtTime(.25,t0+i*.22+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+i*.22+.18);o.connect(g).connect(AC.destination);o.start(t0+i*.22);o.stop(t0+i*.22+.2)}}catch(e){}try{navigator.vibrate&&navigator.vibrate([180,80,180])}catch(e){}}
+document.addEventListener("pointerdown",()=>{const had=AC&&AC.state==="running";audioOn();if(!had)setTimeout(()=>{if(AC&&AC.state==="running")document.querySelectorAll("[data-som]").forEach(b=>{const x=b.closest(".banner");if(x)x.remove()})},250)},{passive:true});
+let WL=null;async function keepAwake(){try{if(navigator.wakeLock&&document.visibilityState==="visible"&&ROLE&&ROLE!=="garcom")WL=await navigator.wakeLock.request("screen")}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")keepAwake()});
+const NOTIF_OK=()=>"Notification" in window&&Notification.permission==="granted";
+async function notify(title,body,tag){
+  if(!F.som||!NOTIF_OK())return;
+  const opt={body,tag,renotify:true,icon:"icons/icon-192.png",badge:"icons/icon-192.png",vibrate:[220,90,220,90,220],data:{url:location.href.split("#")[0]}};
+  try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg){await reg.showNotification(title,opt);return}}catch(e){}
+  try{new Notification(title,opt)}catch(e){}
+}
+function notifBanner(){
+  if(!F.som||!("Notification" in window)||!ROLE)return"";
+  if(Notification.permission==="default")return`<div class="banner" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1 1 200px">Ative os avisos para cada pedido chegar com som e notificação neste celular.</span><button class="btn pri mini" type="button" data-notif>Ativar avisos</button></div>`;
+  if(Notification.permission==="denied")return`<p class="banner err">Os avisos estão bloqueados neste celular. Para liberar: toque no cadeado ao lado do endereço (ou em Configurações do app) › Notificações › Permitir.</p>`;
+  return"";
+}
+function soundBanner(){
+  if(!F.som||!ROLE)return"";if(AC&&AC.state==="running")return"";
+  return`<div class="banner warn" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1 1 200px">O som dos avisos está desligado neste celular. Toque no botão para ligar.</span><button class="btn pri mini" type="button" data-som>Ligar som</button></div>`;
+}
+function licBanner(){
+  if(!LIC)return"";const d=licDias();
+  if(d<0)return`<p class="banner err"><b>Plano vencido em ${dmy(LIC.v)}.</b> A comanda para de funcionar ${d<=-TOLER?"hoje":"em "+(TOLER+d+1)+" dia"+(TOLER+d+1>1?"s":"")}. <a href="${waLink("Olá! Quero renovar a Comanda Online de "+(CONFIG.nome||CODE)+".")}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">Renovar pelo WhatsApp</a></p>`;
+  if(d<=3)return`<p class="banner warn">Seu plano vence ${d===0?"hoje":d===1?"amanhã":"em "+d+" dias"} (${dmy(LIC.v)}). <a href="${waLink("Olá! Quero renovar a Comanda Online de "+(CONFIG.nome||CODE)+".")}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">Renovar pelo WhatsApp</a></p>`;
+  return"";
+}
+function modeBanner(){
+  return(S.mode==="local"?'<p class="banner">Modo teste: os pedidos ficam só neste aparelho.</p>':"")+licBanner()+soundBanner()+notifBanner();
+}
+const NEWIDS=new Set();
+
+/* ================= assinaturas ================= */
+let loadTimer;
+function subscribe(){
+  loadTimer=setTimeout(()=>{if(!READY&&!$("slow")){$("app").insertAdjacentHTML("afterbegin",'<p class="banner err" id="slow">A comanda ainda não respondeu. Confira a internet; ela continua tentando sozinha.</p>')}},10000);
+  const ok=(k,meta)=>{if(meta&&meta.fromCache)return;LOADED[k]=true;if(LOADED.c&&LOADED.t&&!READY){READY=true;clearTimeout(loadTimer);const s=$("slow");if(s)s.remove();setSync()}};
+  watchDoc("config/licenca",(d,meta)=>{if(meta&&meta.fromCache&&!d&&LICDOC===undefined)return;LICDOC=d;applyLicDoc()});
+  watchDoc("config/cardapio",(d,meta)=>{if(meta&&meta.fromCache&&!d&&CARD===undefined)return;const j=JSON.stringify(d||null);if(CARD!==undefined&&j===CARDJSON)return;CARDJSON=j;CARD=d||null;buildMenu();if(ADMIN&&EDIT_BUSY)return;render()});
+  watchDoc("config/geral",d=>{if(d){if(d.mesas)CONFIG.mesas=Math.max(1,Math.min(80,d.mesas|0));if(d.nome!==undefined)CONFIG.nome=String(d.nome)}$("brandName").textContent=CONFIG.nome||"Comanda";$("brandSub").textContent=CONFIG.nome?"Comanda":"Online";document.title=(CONFIG.nome?CONFIG.nome+" · ":"")+"Comanda Online";refresh()});
+  watchDoc("config/estoque",d=>{STOCK=(d&&d.qtd)||{};renderStockMarks();if(!(ROLE==="garcom"||ROLE==="atend")||VIEW==="mesas"||CMESA!==null||(ROLE==="atend"&&ATAB!=="mesas"))refresh()});
+  watchDoc("config/dono",(d,meta)=>{const had=!!OWNER,wasOk=OWNER_OK;OWNER=d;if(!meta||!meta.fromCache)OWNER_OK=true;if(OWNER_OK&&CARD!==undefined&&LIC!==undefined&&(had!==!!OWNER||!wasOk))render()});
+  watchDoc("config/caixa",d=>{PLAIN=d&&d.k||"";syncPlainKey()});
+  watch("contas",(docs,meta)=>{CONTAS={};docs.forEach(d=>{CONTAS[d.mesa]=d});ok("c",meta);refresh()});
+  watch("tickets",(docs,meta)=>{TICKETS=docs.sort((a,b)=>a.criado-b.criado);ok("t",meta);alerts();refresh()});
+}
+// sem plano Completo, o caixa usa a chave aberta (não precisa da senha do dono)
+let PLAIN="";
+function syncPlainKey(){if(LIC===undefined)return;if(!F.dono&&PLAIN&&needsKey(ROLE)&&KEY!==PLAIN){setKey(PLAIN,"plain");refresh()}}
+function alerts(){
+  if(SEEN===null){SEEN=new Set(TICKETS.map(t=>t._id));SEEN_READY=new Set(TICKETS.filter(t=>t.status==="pronto").map(t=>t._id));return}
+  const rs=roleSetor(ROLE);
+  const mine=t=>t.setor===rs||ROLE==="caixa"&&isCaixaSetor(t.setor)||(ROLE==="atend"&&isCaixaSetor(t.setor));
+  const novos=TICKETS.filter(t=>!SEEN.has(t._id)&&t.status==="novo"&&mine(t));
+  novos.forEach(t=>{NEWIDS.add(t._id);setTimeout(()=>NEWIDS.delete(t._id),5000)});
+  TICKETS.forEach(t=>SEEN.add(t._id));
+  if(novos.length&&ROLE!=="garcom"){beep(4);
+    const pm={};novos.forEach(t=>(pm[t.mesa]=pm[t.mesa]||[]).push(t));
+    Object.keys(pm).forEach(m=>notify("Novo pedido · Mesa "+m,pm[m].map(t=>t.itens.map(i=>i.q+"× "+i.n+(i.extra?" ("+i.extra+")":"")+(i.obs?" · "+i.obs:"")).join(", ")).join("\n"),"novo-"+m))}
+  if(ROLE==="garcom"||ROLE==="atend"){const prontos=[];TICKETS.filter(t=>t.status==="pronto").forEach(t=>{if(!SEEN_READY.has(t._id)){SEEN_READY.add(t._id);if(t.criado!==t.atualizado)prontos.push(t)}});
+    if(prontos.length){beep(2);prontos.forEach(t=>notify("Pronto para levar · Mesa "+t.mesa,(SETOR[t.setor]||"")+": "+t.itens.map(i=>i.q+"× "+i.n).join(", "),"pronto-"+t._id))}}
+}
+
+/* ================= desenho das telas ================= */
+function render(){
+  setSync();
+  $("dock").innerHTML="";
+  const rb=$("roleBtn");rb.hidden=true;
+  if(S.mode==="fail")return renderFail();
+  if(!CODE)return renderCode();
+  if(LIC===undefined||CARD===undefined)return renderLoading();
+  if(!LIC)return renderNoLic();
+  if(bloqueado())return renderBlocked();
+  if(CARD===null||(!OWNER&&OWNER_OK))return renderSetup();
+  if(ROLE&&!roles()[ROLE]){ROLE="";ls("co_role",null)}
+  if(ADMIN)return renderAdmin();
+  rb.hidden=!ROLE;$("roleName").textContent=roleName();
+  if(!ROLE)return renderRoles();
+  if(ROLE==="garcom")return VIEW==="mesas"?renderMesas():renderMesa();
+  if(F.dono&&isCaixaRole(ROLE)&&!KEY)return renderLocked();
+  if(ROLE==="atend")return renderAtend();
+  if(ROLE==="caixa")return renderCaixa();
+  renderSetor(roleSetor(ROLE));
+}
+function refresh(){
+  if(!S.mode||!ROLE||ADMIN||!LIC||bloqueado()||!CARD)return;
+  const typing=()=>{const a=document.activeElement;return a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")&&$("app").contains(a)};
+  if(F.dono&&isCaixaRole(ROLE)&&!KEY)return;
+  if(ROLE==="atend"&&(CMESA!==null||ATAB!=="mesas")){if(typing()){PENDING=true;return}renderAtend();return}
+  if(ROLE==="garcom"||ROLE==="atend"){if(VIEW==="mesas")renderMesas();else{renderMesaTop();renderNaMesa()}return}
+  if(ROLE==="caixa"){if(typing()){PENDING=true;return}renderCaixa();return}
+  renderSetor(roleSetor(ROLE));
+}
+let PENDING=false;
+document.addEventListener("focusout",()=>{if(PENDING){PENDING=false;setTimeout(refresh,50)}});
+
+function renderLoading(){$("app").innerHTML=`<div class="empty" style="margin-top:24px"><b>Conectando…</b>Carregando a comanda da casa.</div>`}
+function renderCode(){
+  $("app").innerHTML=`<h2 class="sec">Código do estabelecimento</h2>
+  <p class="note" style="margin:0 0 12px">Abra o link que o dono do estabelecimento mandou, ou digite o código abaixo. Só precisa fazer isso uma vez neste celular.</p>
+  <form id="codeForm" novalidate><input type="text" id="codeIn" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Ex.: restaurante-x7k2p9" aria-describedby="codeErr">
+  <p class="note" id="codeErr" style="color:var(--bad);margin:6px 0 0" hidden>O código tem pelo menos 8 letras ou números, sem espaços.</p>
+  <button class="btn pri wide" type="submit" style="margin-top:12px">Entrar</button></form>
+  <p class="note" style="margin-top:18px">Ainda não tem a Comanda Online? <a href="${waLink("Olá! Quero conhecer a Comanda Online para o meu estabelecimento.")}" target="_blank" rel="noopener" style="color:var(--gold)">Fale com a gente no WhatsApp</a>.</p>`;
+  $("codeForm").onsubmit=e=>{e.preventDefault();let v=$("codeIn").value.trim();const m=v.match(/loja=([A-Za-z0-9_-]{8,60})/);if(m)v=m[1];if(!/^[A-Za-z0-9_-]{8,60}$/.test(v)){$("codeErr").hidden=false;return}ls("co_loja",v);location.reload()};
+  $("codeIn").oninput=()=>{$("codeErr").hidden=true};
+}
+function renderFail(){
+  $("app").innerHTML=S.why==="offline"?`<div class="empty" style="margin-top:24px"><b>Sem internet</b>Na primeira vez a comanda precisa de internet para abrir. Conecte o celular e toque em Tentar de novo.<br><br><button class="btn pri" type="button" data-reload>Tentar de novo</button></div>`
+  :`<div class="empty" style="margin-top:24px"><b>Não conectou</b>Confira a internet e tente de novo. (${esc(S.why)})<br><br><button class="btn pri" type="button" data-reload>Tentar de novo</button></div>`;
+}
+function ativarForm(){return`<form id="licForm" novalidate style="margin-top:12px"><div class="fld"><span>Código ou link de ativação</span><textarea id="licIn" style="min-height:70px" placeholder="Cole aqui o link ou o código que você recebeu" autocomplete="off" spellcheck="false"></textarea></div><button class="btn pri wide" type="submit" style="margin-top:10px">Ativar</button></form>`}
+function bindAtivar(){const f=$("licForm");if(!f)return;f.onsubmit=async e=>{e.preventDefault();const b=f.querySelector("button");b.disabled=true;await ativarCodigo($("licIn").value);b.disabled=false}}
+function renderNoLic(){
+  $("app").innerHTML=`<div class="empty" style="margin-top:20px;text-align:left"><b style="text-align:center">Comanda não ativada</b>Este estabelecimento ainda não tem um plano ativo. Se você é o dono, cole abaixo o código de ativação que recebeu.${ativarForm()}
+  <a class="btn wide" href="${waLink("Olá! Quero ativar a Comanda Online. Código: "+CODE)}" target="_blank" rel="noopener" style="display:flex;justify-content:center;align-items:center;margin-top:8px;text-decoration:none">Falar com o suporte</a>
+  <button class="btn ghost wide" type="button" data-trocaloja style="margin-top:8px">Usar outro código de estabelecimento</button></div>`;bindAtivar();
+}
+function renderBlocked(){
+  $("app").innerHTML=`<div class="empty" style="margin-top:20px;text-align:left"><div class="lock-ic" style="text-align:center">🔒</div><b style="text-align:center">Plano vencido</b>O plano ${esc(PLANOS[LIC.p].n)} venceu em ${dmy(LIC.v)}. Para voltar a usar a comanda, renove a mensalidade e cole aqui o novo código.${ativarForm()}
+  <a class="btn ok wide" href="${waLink("Olá! Quero renovar a Comanda Online de "+(CONFIG.nome||CODE)+" (plano "+PLANOS[LIC.p].n+").")}" target="_blank" rel="noopener" style="display:flex;justify-content:center;align-items:center;margin-top:8px;text-decoration:none">Renovar pelo WhatsApp</a></div>`;bindAtivar();
+}
+function renderLocked(){
+  $("app").innerHTML=`${modeBanner()}<div class="empty" style="margin-top:20px"><b>Área do dono</b>${esc(roleName())} mostra quanto entrou no dia. Digite a senha do dono para continuar.<br><br><button class="btn pri" type="button" data-unlock>Digitar a senha</button></div>`;
+}
+function renderRoles(){
+  const R=roles();
+  $("app").innerHTML=`${modeBanner()}<h2 class="sec">Quem está neste celular?</h2>
+  <p class="note" style="margin:0 0 6px">Escolha a função deste aparelho.${F.dono?" Caixa e Garçom e caixa pedem a senha do dono.":""} Depois, só o dono troca a função.</p>
+  <div class="roles">${Object.entries(R).map(([k,r])=>`<button class="role" type="button" data-role="${esc(k)}"><b><span class="dot" style="background:${r.dot}"></span>${esc(r.n)}</b><span>${esc(r.d)}${F.dono&&isCaixaRole(k)?" · <b style=\"font:600 14px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--gold)\">senha do dono</b>":""}</span></button>`).join("")}</div>
+  <button class="btn ghost wide" type="button" data-admin style="margin-top:16px">⚙ Cardápio e ajustes do dono</button>
+  <p class="note" style="margin-top:10px;text-align:center">Plano ${esc(PLANOS[LIC.p].n)} · válido até ${dmy(LIC.v)}</p>`;
+}
+
+/* ---------- primeira configuração ---------- */
+let SETUP={modelo:"restaurante"};
+function renderSetup(){
+  if(OWNER&&CARD===null){ // senha já existe, falta só o cardápio
+    $("app").innerHTML=`${modeBanner()}<h2 class="sec">Monte o cardápio</h2><p class="note">O cardápio ainda não foi criado. Peça ao dono para abrir os ajustes.</p><button class="btn pri wide" type="button" data-admin>Abrir ajustes do dono</button>`;return}
+  const ms=Object.entries(MODELOS);
+  $("app").innerHTML=`${modeBanner()}<h2 class="sec">Bem-vindo! <small>${esc(PLANOS[LIC.p].n)}</small></h2>
+  <p class="note" style="margin:0 0 6px">Vamos deixar a comanda pronta em 1 minuto. Você pode mudar tudo depois.</p>
+  <form id="setupForm" novalidate>
+  <div class="fld"><span>Nome do estabelecimento</span><input type="text" id="stNome" maxlength="40" value="${esc(LIC.n||"")}" autocomplete="off"></div>
+  <div class="fld"><span>Quantas mesas?</span><input type="text" inputmode="numeric" id="stMesas" value="15" autocomplete="off"></div>
+  <div class="fld"><span>Modelo de cardápio para começar</span><div class="seg col" id="stModelo">${ms.map(([k,m])=>`<button type="button" data-v="${k}" aria-pressed="${SETUP.modelo===k}">${esc(m.n)} <small style="float:right;font-weight:600;text-transform:none">${esc(m.d)}</small></button>`).join("")}</div></div>
+  <div class="fld"><span>Crie a senha do dono (4 a 8 números)</span><input type="password" inputmode="numeric" id="stPin1" maxlength="8" autocomplete="new-password"></div>
+  <div class="fld"><span>Repita a senha</span><input type="password" inputmode="numeric" id="stPin2" maxlength="8" autocomplete="new-password"></div>
+  <p class="note">A senha protege o cardápio, os ajustes${F.dono?", o faturamento":""} e a troca de função dos celulares. Guarde bem.</p>
+  <p class="note" id="stErr" style="color:var(--bad)" hidden></p>
+  <button class="btn pri wide" type="submit" id="stOk" style="margin-top:8px;min-height:56px;font-size:18px">Criar minha comanda</button></form>`;
+  $("stModelo").onclick=e=>{const b=e.target.closest("button");if(!b)return;SETUP.modelo=b.dataset.v;$("stModelo").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b))};
+  $("setupForm").oninput=()=>{$("stErr").hidden=true};
+  $("setupForm").onsubmit=async e=>{e.preventDefault();const err=m=>{$("stErr").textContent=m;$("stErr").hidden=false};
+    const nome=$("stNome").value.trim(),mesas=num($("stMesas").value),p1=$("stPin1").value.trim(),p2=$("stPin2").value.trim();
+    if(!nome)return err("Escreva o nome do estabelecimento.");
+    if(!mesas||mesas>80)return err("Número de mesas entre 1 e 80.");
+    if(!/^\d{4,8}$/.test(p1))return err("A senha do dono tem de 4 a 8 números.");
+    if(p1!==p2)return err("As duas senhas não estão iguais.");
+    const b=$("stOk");b.disabled=true;b.textContent="Criando…";
+    try{
+      const K=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");
+      const sealed=await sealKey(p1,K);OWNER=sealed;OWNER_OK=true;
+      await put("config/dono",sealed);
+      if(!F.dono)await put("config/caixa",{k:K});
+      await put("config/geral",{mesas,nome});CONFIG.mesas=mesas;CONFIG.nome=nome;
+      if(CARD===null){const card=Object.assign({v:1},MODELOS[SETUP.modelo].make());await put("config/cardapio",card)}
+      setKey(K,"pin");ADMIN_UNTIL=Date.now()+15*60e3;
+      toast("Comanda criada! Confira o cardápio.");ADMIN=true;ADMTAB="cardapio";render();scrollTo(0,0);
+    }catch(er){writeErr(er);b.disabled=false;b.textContent="Criar minha comanda"}
+  };
+}
+
+/* ---------- garçom: mapa de mesas ---------- */
+function mesaInfo(m){const c=CONTAS[m];if(!c)return null;const tk=TICKETS.filter(t=>t.mesa===m&&t.conta===c.abertaEm);
+  return{c,total:sumItens(c.itens),pronto:tk.filter(t=>t.status==="pronto"&&!isCaixaSetor(t.setor)).length,fila:tk.filter(t=>t.status==="novo"||t.status==="preparo").length}}
+function renderMesas(){
+  const prontos=TICKETS.filter(t=>t.status==="pronto"&&!(ROLE==="atend"&&isCaixaSetor(t.setor)&&t.criado===t.atualizado));
+  const nums=Array.from({length:CONFIG.mesas},(_,i)=>i+1);
+  Object.keys(CONTAS).map(Number).forEach(m=>{if(!nums.includes(m))nums.push(m)});
+  const abertas=Object.keys(CONTAS).length;
+  $("app").innerHTML=`${modeBanner()}${ROLE==="atend"?atendTabs():""}
+  ${prontos.length?`<h2 class="sec">Pronto para levar <small>${prontos.length}</small></h2><div class="ready-list">${prontos.map(t=>`<div class="rd"><div><b>Mesa ${t.mesa}</b> <span class="pill" style="background:var(--coal4)">${dot(t.setor)}${esc(SETOR[t.setor]||"")}</span><p>${t.itens.map(i=>esc(i.q+"× "+i.n)).join(", ")}</p></div><button class="btn ok" type="button" data-levei="${t._id}">Levei</button></div>`).join("")}</div>`:""}
+  <h2 class="sec">Mesas <small>${abertas?abertas+" aberta"+(abertas>1?"s":""):"todas livres"}</small></h2>
+  <div class="mesas">${nums.map(m=>{const i=mesaInfo(m);return`<button class="mesa${i?" occ":""}" type="button" data-mesa="${m}" aria-label="Mesa ${m}${i?", aberta, "+brl(i.total):", livre"}">
+    ${i&&i.pronto?'<span class="flag ready">Pronto</span>':i&&i.c.pediuConta?'<span class="flag bill">Conta</span>':""}
+    <span class="num">${m}</span><span class="st">${i?brl(i.total):"Livre"}</span>${i?`<span class="t">${ago(i.c.abertaEm)}${i.fila?" · "+i.fila+" na fila":""}</span>`:""}</button>`}).join("")}</div>
+  ${!abertas?'<p class="note" style="margin-top:12px">Toque numa mesa para lançar o primeiro pedido.</p>':""}`;
+}
+
+/* ---------- garçom: mesa aberta ---------- */
+function renderMesa(){
+  const m=VIEW;const cats=CAT.filter(c=>c.items.length);
+  $("app").innerHTML=`${modeBanner()}<div class="mhead"><button class="back" type="button" data-go="mesas" aria-label="Voltar para as mesas">‹ Mesas</button><h1>Mesa ${m}</h1><div class="tot" id="mTot"></div></div>
+  <div id="naMesa"></div>
+  ${cats.length?`<nav class="chips" aria-label="Categorias">${cats.map(c=>`<button class="chip" type="button" data-jump="${c.id}">${esc(c.t)}</button>`).join("")}</nav>
+  <div id="cardapio">${cats.map(c=>{let g="";return`<section class="cat" id="cat-${c.id}"><h3>${dot(c.setor)}${esc(c.t)}${F.setores?`<small>${esc(SETOR[c.setor])}</small>`:""}</h3>${c.items.map(id=>{const it=ITEM[id];const head=it.g&&it.g!==g?`<div class="grp">${esc(it.g)}</div>`:"";g=it.g||g;
+    const sub=it.off?"Indisponível agora":it.d||(it.opts&&it.opts.length?"Escolher "+it.opts.map(o=>o.t.toLowerCase()).join(" e "):"");
+    return head+`<button class="item${it.off?" out":""}" type="button" data-add="${id}"${it.off?" disabled":""}><span><b>${esc(it.n)}</b>${sub?`<small>${esc(sub)}</small>`:""}${it.sid?`<span data-stk></span>`:""}</span><span class="ip">${brl(it.p)}</span><span class="plus" aria-hidden="true">+<i data-q="${id}" hidden></i></span></button>`}).join("")}</section>`}).join("")}</div>`
+  :`<div class="empty" style="margin-top:14px"><b>Cardápio vazio</b>O dono ainda não cadastrou os itens. Peça para abrir “Cardápio e ajustes do dono”.</div>`}`;
+  renderMesaTop();renderNaMesa();renderDraftBar();
+}
+function renderMesaTop(){const el=$("mTot");if(!el)return;const c=CONTAS[VIEW];el.innerHTML=`<small>${c?"Aberta "+ago(c.abertaEm):"Mesa livre"}</small>${brl(c?sumItens(c.itens):0)}`}
+const STATUS={novo:"Na fila",preparo:"Fazendo",pronto:"Pronto",entregue:"Entregue"};
+function renderNaMesa(){
+  const el=$("naMesa");if(!el)return;const c=CONTAS[VIEW];
+  if(!c){el.innerHTML="";return}
+  const tk=TICKETS.filter(t=>t.mesa===VIEW&&t.conta===c.abertaEm);
+  el.innerHTML=`<div class="box"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font:400 20px var(--display);text-transform:uppercase">Pedidos da mesa</b>
+    ${ROLE==="atend"?`<button class="btn pri mini" type="button" data-conta="${VIEW}" style="margin-left:auto">Fechar conta</button>`:`<button class="btn ${c.pediuConta?"":"ghost"} mini" type="button" data-pediu style="margin-left:auto${c.pediuConta?";background:var(--gold);color:#2a1600":""}">${c.pediuConta?"Conta pedida ✓":"Pedir a conta"}</button>`}</div>
+    ${tk.length?tk.map(t=>`<div class="tk"><div class="h"><span>${dot(t.setor)}${esc(SETOR[t.setor]||"")}</span><span>${hhmm(t.criado)}</span><span class="pill p-${t.status}">${STATUS[t.status]}</span>${t.status==="pronto"?`<button class="btn ok mini" type="button" data-levei="${t._id}" style="margin-left:auto">Levei</button>`:""}</div><div class="its">${t.itens.map(i=>esc(i.q+"× "+i.n+(i.extra?" ("+i.extra+")":"")+(i.obs?" · "+i.obs:""))).join("<br>")}</div></div>`).join(""):'<p class="note" style="margin:0">Nenhum pedido enviado ainda.</p>'}</div>`;
+}
+function draftCount(){return DRAFT.reduce((a,d)=>a+d.q,0)}
+function renderDraftBar(){
+  document.querySelectorAll("[data-q]").forEach(el=>{const q=DRAFT.filter(d=>d.id===el.dataset.q).reduce((a,d)=>a+d.q,0);el.hidden=!q;el.textContent=q});
+  renderStockMarks();
+  const n=draftCount();
+  $("dock").innerHTML=n?`<div class="dock"><button class="btn pri" type="button" data-review><span class="cnt">${n} ${n>1?"itens":"item"}</span><span>Revisar e enviar</span><span>${brl(sumItens(DRAFT))}</span></button></div>`:"";
+}
+function addDraft(it,extra,q){
+  const k=it.id+"|"+extra;const ex=DRAFT.find(d=>d.k===k);
+  if(it.sid&&avail(it.sid)<q){const r=avail(it.sid);toast(r<=0?it.n+" esgotado":"Só restam "+r+" de "+it.n,true);return false}
+  if(ex)ex.q+=q;else DRAFT.push({k,id:it.id,n:it.n,p:it.p,q,extra,obs:"",sid:it.sid,setor:it.setor,aviso:it.aviso});
+  renderDraftBar();
+}
+/* opções do item: cada grupo é uma escolha (ex.: ponto da carne) */
+let OPT=null;
+function openOpt(it){
+  OPT={it,sel:it.opts.map(g=>g.o[0]),q:1};
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>${esc(it.n)}</h3><p class="note" style="margin:0">${brl(it.p)} · Mesa ${VIEW}</p>
+  ${it.opts.map((g,gi)=>`<div class="fld"><span>${esc(g.t)}</span><div class="seg" data-og="${gi}">${g.o.map((v,i)=>`<button type="button" data-ov="${esc(v)}" aria-pressed="${!i}">${esc(v)}</button>`).join("")}</div></div>`).join("")}
+  <div class="fld"><span>Quantidade</span><div class="step"><button class="qb" type="button" data-oq="-1" aria-label="Menos">−</button><b id="oQ">1</b><button class="qb" type="button" data-oq="1" aria-label="Mais">+</button></div></div>
+  <button class="btn pri wide" type="button" id="oAdd" style="margin-top:16px">Adicionar ao pedido</button>`);
+  $("sheetIn").querySelectorAll("[data-og]").forEach(el=>{el.onclick=e=>{const b=e.target.closest("button");if(!b)return;el.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));OPT.sel[+el.dataset.og]=b.dataset.ov}});
+  $("oAdd").onclick=()=>{const o=OPT;if(addDraft(o.it,o.sel.join(" · "),o.q)===false)return;closeSheet();toast(o.q+"× "+o.it.n+" no pedido")};
+}
+function openReview(){
+  if(!DRAFT.length)return closeSheet();
+  const per={};DRAFT.forEach(d=>{per[d.setor]=(per[d.setor]||0)+d.q;if(d.aviso)per[d.aviso]=(per[d.aviso]||0)+d.q});
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>Pedido da Mesa ${VIEW}</h3>
+  <div id="dList">${DRAFT.map((d,i)=>`<div class="dl"><div class="r"><div><b>${esc(d.n)}</b>${d.extra?`<small>${esc(d.extra)}</small>`:""}<small>${brl(d.p*d.q)}</small></div><div class="step"><button class="qb" type="button" data-dq="${i}" data-v="-1" aria-label="Tirar um">−</button><b>${d.q}</b><button class="qb" type="button" data-dq="${i}" data-v="1" aria-label="Pôr mais um">+</button></div></div>
+    <input type="text" id="obs-${i}" data-obs="${i}" value="${esc(d.obs)}" placeholder="Observação: sem cebola, bem passado…" maxlength="80" autocomplete="off"></div>`).join("")}</div>
+  ${F.setores?`<div class="route">Vai para: ${Object.entries(per).map(([s,n])=>`<span>${dot(s)}${esc(SETOR[s]||"")} (${n})</span>`).join(" ")}</div>`:""}
+  <div class="sum"><div class="r"><span>Total deste pedido</span><b>${brl(sumItens(DRAFT))}</b></div></div>
+  <button class="btn pri wide" type="button" id="send" style="margin-top:14px;min-height:56px;font-size:18px">Enviar pedido da Mesa ${VIEW}</button>
+  <button class="btn ghost wide" type="button" id="clearDraft" style="margin-top:8px">Apagar este pedido</button>`);
+  $("send").onclick=enviar;
+  $("clearDraft").onclick=()=>{DRAFT=[];renderDraftBar();closeSheet()};
+}
+let SENDING=false;
+async function enviar(){
+  if(SENDING||!DRAFT.length)return;
+  SENDING=true;const b=$("send");if(b){b.disabled=true;b.textContent="Enviando…"}
+  const need={};DRAFT.forEach(d=>{if(d.sid&&tracked(d.sid))need[d.sid]=(need[d.sid]||0)+d.q});
+  for(const k of Object.keys(need)){if(need[k]>Math.max(0,STOCK[k])){SENDING=false;if(b){b.disabled=false;b.textContent="Enviar pedido da Mesa "+VIEW}const r=Math.max(0,STOCK[k]),n=(ITEM[k]||{}).n||"Item";toast(r?"Só restam "+r+" de "+n+". Diminua a quantidade.":n+" acabou. Tire do pedido.",true);return}}
+  const m=VIEW,now=Date.now(),c=CONTAS[m],abertaEm=c?c.abertaEm:now;
+  const novos=DRAFT.map(d=>({n:d.n,p:d.p,q:d.q,extra:d.extra,obs:d.obs.trim(),t:now,u:uid()}));
+  const porSetor={};DRAFT.forEach(d=>{(porSetor[d.setor]=porSetor[d.setor]||[]).push({q:d.q,n:d.n,extra:d.extra,obs:d.obs.trim()});if(d.aviso)(porSetor[d.aviso]=porSetor[d.aviso]||[]).push({q:d.q,n:d.n,extra:(d.extra?d.extra+" · ":"")+"vai com "+(SETOR[d.setor]||""),obs:d.obs.trim()})});
+  try{
+    await contaAppend(m,{mesa:m,abertaEm,pediuConta:false,atualizado:now},novos);
+    if(Object.keys(need).length){const dec={};Object.keys(need).forEach(k=>dec[k]={inc:-need[k]});await stockWrite({qtd:dec})}
+    for(const s of Object.keys(porSetor))await add("tickets",{mesa:m,conta:abertaEm,setor:s,itens:porSetor[s],status:ROLE==="atend"&&isCaixaSetor(s)?"pronto":"novo",criado:now,atualizado:now});
+    DRAFT=[];closeSheet();renderDraftBar();toast("Pedido da Mesa "+m+" enviado");
+  }catch(e){writeErr(e);if(b){b.disabled=false;b.textContent="Tentar enviar de novo"}}
+  SENDING=false;
+}
+
+/* ---------- telas de preparo ---------- */
+function stationHTML(setor){
+  const fila=TICKETS.filter(t=>t.setor===setor&&(t.status==="novo"||t.status==="preparo"));
+  const prontos=TICKETS.filter(t=>t.setor===setor&&t.status==="pronto").sort((a,b)=>b.atualizado-a.atualizado);
+  return`<h2 class="sec">${dot(setor)}${esc(SETOR[setor]||"Preparo")} <small>${fila.length?fila.length+" na fila":"fila vazia"}</small></h2>
+  ${fila.length?`<div class="queue">${fila.map(t=>{const a=mins(t.criado);return`<article class="tc${NEWIDS.has(t._id)?" new":""}"><div class="h"><span class="m">Mesa ${t.mesa}</span><span class="age ${a>=20?"bad":a>=10?"warn":""}">${ago(t.criado)}<br><span class="pill p-${t.status}">${STATUS[t.status]}</span></span></div>
+    <ul>${t.itens.map(i=>`<li>${esc(i.q+"× "+i.n)}${i.extra?`<small>${esc(i.extra)}</small>`:""}${i.obs?`<span class="ob">${esc(i.obs)}</span>`:""}</li>`).join("")}</ul>
+    <div class="acts">${t.status==="novo"?`<button class="btn" type="button" data-st="${t._id}" data-v="preparo">Fazendo</button>`:`<button class="btn ghost" type="button" data-st="${t._id}" data-v="novo">Voltar</button>`}<button class="btn ok" type="button" data-st="${t._id}" data-v="pronto">Pronto</button></div></article>`}).join("")}</div>`
+  :`<div class="empty"><b>Sem pedidos agora</b>Os pedidos das mesas aparecem aqui na hora${F.som?", com som de aviso":""}.</div>`}
+  ${prontos.length?`<h2 class="sec" style="font-size:20px">Prontos, esperando o garçom</h2><div class="done">${prontos.slice(0,8).map(t=>`<div class="r"><span><b style="color:var(--ash)">Mesa ${t.mesa}</b> · ${t.itens.map(i=>esc(i.q+"× "+i.n)).join(", ")} · ${ago(t.atualizado)}</span><button class="btn ghost mini" type="button" data-st="${t._id}" data-v="preparo">Desfazer</button></div>`).join("")}</div>`:""}`;
+}
+function renderSetor(setor){$("app").innerHTML=modeBanner()+stationHTML(setor)}
+
+/* ---------- caixa ---------- */
+function agg(itens){const m=new Map();(itens||[]).forEach(i=>{const k=i.n+"|"+(i.extra||"")+"|"+i.p;const a=m.get(k);if(a)a.q+=i.q;else m.set(k,{k,n:i.n,extra:i.extra||"",p:i.p,q:i.q})});return[...m.values()]}
+function pay(m){return PAY[m]=PAY[m]||{servico:false,pessoas:1,forma:"Pix",recebido:"",confirm:false}}
+function totals(m){const c=CONTAS[m],p=pay(m),sub=sumItens(c?c.itens:[]),serv=p.servico?Math.round(sub*10)/100:0,tot=sub+serv;return{sub,serv,tot,cada:tot/Math.max(1,p.pessoas)}}
+const lowStock=()=>F.estoque?stockItems().filter(k=>tracked(k)&&STOCK[k]<=3).length:0;
+function tabsDef(){
+  const t=[];
+  if(ROLE==="atend")t.push(["mesas","Mesas",Object.keys(CONTAS).length]);else t.push(["contas","Contas",Object.keys(CONTAS).length]);
+  caixaSetores().forEach(s=>t.push(["s:"+s.id,s.n,TICKETS.filter(x=>x.setor===s.id&&(x.status==="novo"||x.status==="preparo")).length]));
+  if(F.estoque)t.push(["estoque","Estoque",lowStock()]);
+  if(F.dia)t.push(["dia",F.rel?"Caixa e relatórios":"Caixa do dia",0]);
+  t.push(["ajustes","Ajustes",0]);
+  return t;
+}
+function renderCaixa(){
+  const abertas=Object.values(CONTAS).sort((a,b)=>a.mesa-b.mesa);
+  if(CMESA!==null&&!CONTAS[CMESA])CMESA=null;
+  let body="";
+  if(CTAB==="contas")body=CMESA!==null?contaHTML(CMESA):(abertas.length?`<div class="acc">${abertas.map(c=>`<button class="ac" type="button" data-conta="${c.mesa}"><span class="num">${c.mesa}</span><span><b style="font:700 17px var(--cond);text-transform:uppercase">Mesa ${c.mesa}</b>${c.pediuConta?' <span class="flag bill" style="position:static">Pediu a conta</span>':""}<br><span class="note">Aberta às ${hhmm(c.abertaEm)} · ${agg(c.itens).reduce((a,i)=>a+i.q,0)} itens</span></span><span class="v">${brl(sumItens(c.itens))}</span></button>`).join("")}</div>`:`<div class="empty"><b>Nenhuma mesa aberta</b>Quando o garçom lançar um pedido, a conta da mesa aparece aqui.</div>`);
+  else if(CTAB.startsWith("s:"))body=stationHTML(CTAB.slice(2));
+  else if(CTAB==="dia")body=diaHTML();
+  else if(CTAB==="estoque")body=estoqueHTML();
+  $("app").innerHTML=`${modeBanner()}<nav class="tabs" aria-label="Seções do caixa">${tabsDef().map(([k,n,c])=>`<button class="tab" type="button" data-tab="${esc(k)}" aria-pressed="${CTAB===k}">${esc(n)}${c?`<i>${c}</i>`:""}</button>`).join("")}</nav>${body}`;
+}
+function atendTabs(){return`<nav class="tabs" aria-label="Seções">${tabsDef().map(([k,n,c])=>`<button class="tab" type="button" data-atab="${esc(k)}" aria-pressed="${ATAB===k}">${esc(n)}${c?`<i>${c}</i>`:""}</button>`).join("")}</nav>`}
+function renderAtend(){
+  if(CMESA!==null&&!CONTAS[CMESA])CMESA=null;
+  if(CMESA!==null){$("app").innerHTML=modeBanner()+contaHTML(CMESA);return}
+  if(ATAB==="mesas")return VIEW==="mesas"?renderMesas():renderMesa();
+  $("app").innerHTML=modeBanner()+atendTabs()+(ATAB.startsWith("s:")?stationHTML(ATAB.slice(2)):ATAB==="dia"?diaHTML():ATAB==="estoque"?estoqueHTML():"");
+}
+function contaHTML(m){
+  const c=CONTAS[m],p=pay(m),T=totals(m),its=agg(c.itens);
+  const rec=parseFloat(String(p.recebido).replace(",","."))||0;
+  return`<div class="mhead"><button class="back" type="button" data-conta="" aria-label="Voltar">‹ ${ROLE==="atend"?"Voltar":"Contas"}</button><h1>Mesa ${m}</h1><div class="tot"><small>Aberta às ${hhmm(c.abertaEm)}</small>${brl(T.tot)}</div></div>
+  <div class="box"><div class="lines">${its.length?its.map(i=>`<div class="ln"><span class="q">${i.q}×</span><span>${esc(i.n)}${i.extra?`<small>${esc(i.extra)}</small>`:""}<small>${brl(i.p)} cada</small></span><span class="v">${brl(i.p*i.q)}</span><button class="qb" type="button" data-rm="${esc(i.k)}" aria-label="Tirar um ${esc(i.n)}">−</button></div>`).join(""):'<p class="note">Sem itens nesta conta.</p>'}</div>
+  <div class="sum"><div class="r"><span>Consumo</span><span>${brl(T.sub)}</span></div>${p.servico?`<div class="r"><span>Serviço (10%)</span><span>${brl(T.serv)}</span></div>`:""}<div class="r"><span>Total</span><span class="big">${brl(T.tot)}</span></div>${p.pessoas>1?`<div class="r"><span>Por pessoa (${p.pessoas})</span><b>${brl(T.cada)}</b></div>`:""}</div></div>
+  <div class="box" style="display:grid;gap:12px">
+    <button class="tgl" type="button" data-serv aria-pressed="${p.servico}"><span>Cobrar 10% de serviço</span><span class="sw"></span></button>
+    <div class="fld" style="margin:0"><span>Dividir entre</span><div class="step"><button class="qb" type="button" data-pes="-1" aria-label="Menos pessoas">−</button><b>${p.pessoas}</b><button class="qb" type="button" data-pes="1" aria-label="Mais pessoas">+</button><span class="note">${p.pessoas>1?"pessoas":"pessoa"}</span></div></div>
+    ${F.caixa?`<div class="fld" style="margin:0"><span>Forma de pagamento</span><div class="seg" id="forma">${["Pix","Cartão","Dinheiro"].map(v=>`<button type="button" data-forma="${v}" aria-pressed="${p.forma===v}">${v}</button>`).join("")}</div></div>
+    ${p.forma==="Dinheiro"?`<div class="fld" style="margin:0"><span>Valor recebido</span><input type="text" inputmode="decimal" id="recebido" value="${esc(p.recebido)}" placeholder="Ex.: 100,00" autocomplete="off"><span class="note" id="troco">${rec?(rec>=T.tot?"Troco: "+brl(rec-T.tot):"Faltam "+brl(T.tot-rec)):"Digite quanto o cliente entregou para ver o troco."}</span></div>`:""}`:""}
+  </div>
+  ${p.confirm?`<div class="confirm"><b>Fechar a Mesa ${m}${F.caixa?" em "+p.forma:""} · ${brl(T.tot)}?</b><span class="note">A mesa fica livre${F.dia?" e a venda entra no caixa do dia":""}.</span><div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px"><button class="btn ghost" type="button" data-fechar="nao">Cancelar</button><button class="btn ok" type="button" data-fechar="sim" id="fecharSim">Confirmar</button></div></div>`
+  :`<button class="btn pri wide" type="button" data-fechar="pedir" style="margin-top:12px;min-height:56px;font-size:18px">${its.length?"Fechar conta":"Liberar mesa"}</button>`}`;
+}
+function relHTML(list,multi){
+  const tot=list.reduce((a,f)=>a+f.total,0),by={};list.forEach(f=>{by[f.pagamento]=(by[f.pagamento]||0)+f.total});
+  const top=new Map();list.forEach(f=>(f.itens||[]).forEach(i=>top.set(i.n,(top.get(i.n)||0)+i.q)));
+  const rank=[...top.entries()].sort((a,b)=>b[1]-a[1]).slice(0,multi?10:6);
+  const dias={};if(multi)list.forEach(f=>{const d=dias[f.dia]=dias[f.dia]||{t:0,n:0};d.t+=f.total;d.n++});
+  return`<div class="kpis" style="margin-top:10px"><div class="kpi"><span>Vendido</span><b>${brl(tot)}</b></div><div class="kpi"><span>Contas fechadas</span><b>${list.length}</b></div>
+  ${["Pix","Cartão","Dinheiro"].map(k=>`<div class="kpi"><span>${k}</span><b>${brl(by[k]||0)}</b></div>`).join("")}<div class="kpi"><span>Ticket médio</span><b>${brl(list.length?tot/list.length:0)}</b></div></div>
+  ${multi&&Object.keys(dias).length?`<h2 class="sec" style="font-size:20px">Por dia</h2><div class="box"><div class="lines">${Object.keys(dias).sort().reverse().map(d=>`<div class="ln" style="grid-template-columns:minmax(0,1fr) auto"><span>${dmy(d)}<small>${dias[d].n} conta${dias[d].n>1?"s":""}</small></span><span class="v">${brl(dias[d].t)}</span></div>`).join("")}</div></div>`:""}
+  ${rank.length?`<h2 class="sec" style="font-size:20px">Mais vendidos</h2><div class="box"><div class="lines">${rank.map(([n,q])=>`<div class="ln" style="grid-template-columns:auto minmax(0,1fr)"><span class="q">${q}×</span><span>${esc(n)}</span></div>`).join("")}</div></div>`:""}`;
+}
+function diaHTML(){
+  const per=F.rel?`<div class="per" role="group" aria-label="Período">${[["hoje","Hoje"],["ontem","Ontem"],["7","7 dias"],["30","30 dias"]].map(([k,n])=>`<button type="button" data-per="${k}" aria-pressed="${PER===k}">${n}</button>`).join("")}</div>`:"";
+  if(PER!=="hoje"&&F.rel){
+    if(!PERDATA||PERDATA.k!==PER)return per+`<div class="empty" style="margin-top:12px"><b>Carregando…</b></div>`;
+    return per+relHTML(PERDATA.list,PER!=="ontem")+(PERDATA.list.length?"":`<div class="empty" style="margin-top:12px"><b>Sem vendas no período</b></div>`);
+  }
+  return per+relHTML(FECH,false)+`<h2 class="sec" style="font-size:20px">Contas fechadas hoje</h2>${FECH.length?`<div class="box"><div class="lines">${FECH.map(f=>`<div class="ln" style="grid-template-columns:auto minmax(0,1fr) auto"><span class="q">${f.mesa}</span><span>Mesa ${f.mesa} · ${hhmm(f.fechadoEm)}<small>${esc(f.pagamento)}${f.servico?" · com 10%":""}</small></span><span class="v">${brl(f.total)}</span></div>`).join("")}</div></div>`:`<div class="empty"><b>Nenhuma conta fechada hoje</b>As contas fechadas aparecem aqui com a forma de pagamento.</div>`}`;
+}
+async function loadPer(k){
+  PER=k;PERDATA=null;refresh();if(k==="hoje"||!KEY)return;
+  const to=k==="ontem"?workday(1):workday(),from=k==="ontem"?workday(1):workday(+k-1);
+  try{const list=await getRange("cx_"+KEY,"dia",from,to);if(PER===k){PERDATA={k,list:list.sort((a,b)=>b.fechadoEm-a.fechadoEm)};refresh()}}catch(e){toast("Não deu para carregar o relatório. Confira a internet.",true)}
+}
+let CLOSING=false;
+async function fecharConta(m){
+  if(CLOSING)return;CLOSING=true;const b=$("fecharSim");if(b){b.disabled=true;b.textContent="Fechando…"}
+  const c=CONTAS[m],p=pay(m),T=totals(m),now=Date.now();
+  try{
+    if(!KEY){toast(F.dono?"Abra o caixa com a senha do dono para fechar contas.":"Conectando com o caixa… tente de novo.",true);CLOSING=false;if(b){b.disabled=false;b.textContent="Confirmar"}return}
+    if(c.itens&&c.itens.length)await add("cx_"+KEY,{mesa:m,itens:agg(c.itens).map(i=>({n:i.n,extra:i.extra,p:i.p,q:i.q})),subtotal:T.sub,servico:T.serv,total:T.tot,pagamento:F.caixa?p.forma:"—",pessoas:p.pessoas,abertaEm:c.abertaEm,fechadoEm:now,dia:workday()});
+    for(const t of TICKETS.filter(t=>t.mesa===m&&t.conta===c.abertaEm))await del("tickets/"+t._id);
+    await del("contas/m"+m);
+    delete PAY[m];CMESA=null;if(ROLE==="atend")VIEW="mesas";toast("Mesa "+m+" fechada · "+brl(T.tot));
+  }catch(e){writeErr(e)}
+  CLOSING=false;render();
+}
+async function tirarItem(m,k){
+  const c=CONTAS[m];if(!c||!c.itens)return;let old=null;
+  for(let j=c.itens.length-1;j>=0;j--){const i=c.itens[j];if(i.n+"|"+(i.extra||"")+"|"+i.p===k){old=i;break}}
+  if(!old)return;
+  const nu=old.q>1?Object.assign({},old,{q:old.q-1,u:uid()}):null;
+  try{await contaReplace(m,old,nu)}catch(e){writeErr(e)}
+}
+
+/* ================= estoque (Completo) ================= */
+let STOCK={};
+const stockItems=()=>Object.keys(ITEM).filter(k=>ITEM[k].sid);
+const tracked=k=>typeof STOCK[k]==="number";
+const drafted=k=>DRAFT.reduce((a,d)=>a+(d.sid===k?d.q:0),0);
+const avail=k=>!k||!tracked(k)?Infinity:Math.max(0,STOCK[k])-drafted(k);
+function stockWrite(obj){
+  if(S.mode==="fb"){const FV=firebase.firestore.FieldValue,o={};
+    for(const g of Object.keys(obj)){o[g]={};for(const k of Object.keys(obj[g])){const v=obj[g][k];o[g][k]=v===null?FV.delete():(v&&v.inc!==undefined)?FV.increment(v.inc):v}}
+    return fire(S.fs.doc(FP("config/estoque")).set(o,{merge:true}))}
+  const c=(LOCAL.data.config=LOCAL.data.config||{}),d=(c.estoque=c.estoque||{});
+  for(const g of Object.keys(obj)){d[g]=d[g]||{};for(const k of Object.keys(obj[g])){const v=obj[g][k];if(v===null)delete d[g][k];else if(v&&v.inc!==undefined)d[g][k]=(d[g][k]||0)+v.inc;else d[g][k]=v}}
+  localEmit();return Promise.resolve();
+}
+function stockTag(k){if(!tracked(k))return"";const q=avail(k);return q<=0?'<span class="stk zero">Esgotado</span>':`<span class="stk${q<=5?" low":""}">${q===1?"Resta 1":"Restam "+q}</span>`}
+function renderStockMarks(){
+  document.querySelectorAll("[data-add]").forEach(b=>{const it=ITEM[b.dataset.add];if(!it||!it.sid||it.off)return;const out=tracked(it.sid)&&avail(it.sid)<=0;b.classList.toggle("out",out);b.disabled=out;const t=b.querySelector("[data-stk]");if(t)t.innerHTML=stockTag(it.sid)});
+}
+function estoqueHTML(){
+  const ids=stockItems();
+  if(!ids.length)return`<h2 class="sec">Estoque</h2><div class="empty"><b>Nenhum item com estoque</b>No cardápio, abra um item e ligue “Controlar estoque”. Ele passa a descontar sozinho a cada pedido.</div>`;
+  return`<h2 class="sec">Estoque <small>desconta sozinho a cada pedido</small></h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="btn pri" type="button" data-skcount>Contagem do dia</button><button class="btn" type="button" data-skarrive>Chegou mercadoria</button></div>
+  <div class="box">${ids.map(k=>{const t=tracked(k),q=t?Math.max(0,STOCK[k]):0;return`<div class="sk"><div><b class="n">${esc(ITEM[k].n)}</b><span class="stk${t&&q<=0?" zero":t&&q<=5?" low":""}">${t?(q<=0?"Esgotado":"no estoque"):"Sem contagem: não bloqueia"}</span></div>
+    <span class="big ${t?(q<=0?"zero":q<=5?"low":""):"off"}">${t?q:"—"}</span>
+    <div class="acts"><button class="qb" type="button" data-sk="${k}" data-v="-1" aria-label="Tirar 1 de ${esc(ITEM[k].n)}">−</button><button class="qb" type="button" data-sk="${k}" data-v="1" aria-label="Pôr 1 de ${esc(ITEM[k].n)}">+</button></div></div>`}).join("")}</div>
+  <p class="note">Quando um item chega a zero, ele aparece riscado como <b>Esgotado</b> no celular dos garçons e não dá para lançar.</p>`;
+}
+function openContagem(){const ids=stockItems();
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>Contagem do dia</h3><p class="note" style="margin:0 0 8px">Escreva quantos tem de cada item. Deixe em branco o que não quiser controlar hoje.</p>
+  <form id="cntForm" novalidate>${ids.map(k=>`<label class="cnt-row" for="cnt-${k}"><span>${esc(ITEM[k].n)}</span><input type="text" inputmode="numeric" id="cnt-${k}" value="${tracked(k)?Math.max(0,STOCK[k]):""}" placeholder="—" autocomplete="off"></label>`).join("")}
+  <p class="note" id="cntErr" style="color:var(--bad)" hidden>Use só números.</p><button class="btn pri wide" type="submit" style="margin-top:12px">Salvar contagem</button></form>`);
+  $("cntForm").oninput=()=>{$("cntErr").hidden=true};
+  $("cntForm").onsubmit=e=>{e.preventDefault();const q={};for(const k of ids){const v=$("cnt-"+k).value;if(v.trim()===""){q[k]=null;continue}const n=num(v);if(n===null){$("cntErr").hidden=false;return}q[k]=n}
+    stockWrite({qtd:q}).then(()=>{closeSheet();toast("Contagem salva")})};
+}
+function openChegou(){const ids=stockItems();
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>Chegou mercadoria</h3><p class="note" style="margin:0 0 8px">Escreva quantas unidades chegaram. Soma no estoque.</p>
+  <form id="arrForm" novalidate>${ids.map(k=>`<label class="cnt-row" for="arr-${k}"><span>${esc(ITEM[k].n)}</span><input type="text" inputmode="numeric" id="arr-${k}" placeholder="+0" autocomplete="off"></label>`).join("")}
+  <p class="note" id="arrErr" style="color:var(--bad)" hidden>Use só números.</p><button class="btn pri wide" type="submit" style="margin-top:12px">Somar ao estoque</button></form>`);
+  $("arrForm").oninput=()=>{$("arrErr").hidden=true};
+  $("arrForm").onsubmit=e=>{e.preventDefault();const q={};let any=false;
+    for(const k of ids){const v=$("arr-"+k).value.trim();if(!v)continue;const n=num(v);if(n===null){$("arrErr").hidden=false;return}q[k]=tracked(k)?{inc:n}:n;any=true}
+    if(!any){closeSheet();return}stockWrite({qtd:q}).then(()=>{closeSheet();toast("Estoque atualizado")})};
+}
+
+/* ================= senha do dono =================
+   O caixa fica num endereço secreto (a "chave do caixa"), guardada fechada com a senha do dono. */
+let OWNER=null,OWNER_OK=false;
+let KEY=ls("co_k")||"",KVIA=ls("co_kvia")||"";
+let UNLOCK=null,FECH_UN=null,FECH_DAY="";
+function startFech(){if(FECH_UN||!KEY||!F.dia)return;FECH_DAY=workday();FECH_UN=watch("cx_"+KEY,docs=>{FECH=docs.sort((a,b)=>b.fechadoEm-a.fechadoEm);refresh()},["dia",FECH_DAY])}
+function stopFech(){if(FECH_UN)FECH_UN();FECH_UN=null;FECH=[]}
+function setKey(k,via){KEY=k||"";KVIA=KEY?(via||"pin"):"";ls("co_k",KEY||null);ls("co_kvia",KVIA||null);stopFech();if(KEY)startFech()}
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+const ub64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+async function pinKey(pin,salt,iter){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function openKey(pin){if(!OWNER)return null;try{const k=await pinKey(pin,ub64(OWNER.salt),OWNER.iter);return new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:ub64(OWNER.iv)},k,ub64(OWNER.ct)))}catch(e){return null}}
+async function sealKey(pin,K){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),iter=150000;const k=await pinKey(pin,salt,iter);return{salt:b64(salt),iv:b64(iv),ct:b64(await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(K))),iter,atualizado:Date.now()}}
+// depois que o dono digita a senha: no Completo some a chave aberta; nos outros planos ela fica para o caixa
+async function ownerUnlocked(K){ADMIN_UNTIL=Date.now()+15*60e3;try{if(F.dono){if(PLAIN)await del("config/caixa")}else if(PLAIN!==K)await put("config/caixa",{k:K})}catch(e){}}
+let PINRES=null;
+function pinSheet(title,msg,mode){
+  if(!crypto||!crypto.subtle){toast("Este navegador não abre a área do dono. Use o Chrome atualizado.",true);return Promise.resolve(null)}
+  if(!OWNER_OK&&!OWNER&&mode!=="new"){toast("Conectando com a comanda… tente de novo em alguns segundos.",true);return Promise.resolve(null)}
+  const create=mode==="new"||!OWNER;
+  return new Promise(res=>{
+    if(PINRES)PINRES(null);PINRES=res;
+    sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>${esc(title)}</h3>
+    <p class="note" style="margin:0">${create&&mode!=="new"?"Ainda não existe senha do dono. Crie agora uma senha de 4 a 8 números.":esc(msg)}</p>
+    <form id="pinForm" novalidate><div class="fld"><span>${create?"Nova senha do dono":"Senha do dono"}</span><input type="password" inputmode="numeric" id="pin1" maxlength="8" autocomplete="off"></div>
+    ${create?'<div class="fld"><span>Repita a senha</span><input type="password" inputmode="numeric" id="pin2" maxlength="8" autocomplete="off"></div>':""}
+    <p class="note" id="pinErr" style="color:var(--bad);margin:8px 0 0" hidden></p>
+    <button class="btn pri wide" type="submit" id="pinOk" style="margin-top:14px">${create?"Criar senha":"Entrar"}</button></form>`);
+    setTimeout(()=>{const i=$("pin1");if(i)i.focus()},50);
+    const err=m=>{const e=$("pinErr");e.textContent=m;e.hidden=false};
+    $("pinForm").oninput=()=>{$("pinErr").hidden=true};
+    $("pinForm").onsubmit=async e=>{e.preventDefault();const p1=$("pin1").value.trim();
+      if(!/^\d{4,8}$/.test(p1))return err("A senha tem de 4 a 8 números.");
+      const b=$("pinOk");b.disabled=true;b.textContent="Conferindo…";
+      let K=null;
+      if(create){if($("pin2").value.trim()!==p1){b.disabled=false;b.textContent="Criar senha";return err("As duas senhas não estão iguais.")}
+        K=mode==="new"&&KEY?KEY:(PLAIN||Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join(""));
+        const sealed=await sealKey(p1,K);OWNER=sealed;try{await put("config/dono",sealed)}catch(er){writeErr(er);b.disabled=false;b.textContent="Criar senha";return}
+        toast(mode==="new"?"Senha do dono trocada":"Senha do dono criada. Guarde bem!")}
+      else{K=await openKey(p1);if(!K){b.disabled=false;b.textContent="Entrar";$("pin1").value="";return err("Senha errada.")}}
+      await ownerUnlocked(K);
+      const r=PINRES;PINRES=null;closeSheet();r&&r(K)};
+  });
+}
+async function askOwner(title,msg){if(Date.now()<ADMIN_UNTIL&&KEY&&KVIA==="pin")return KEY;return pinSheet(title,msg,"check")}
+async function trocarSenha(){const k=await pinSheet("Trocar senha do dono","Digite a senha atual.","check");if(!k)return;setKey(k,"pin");await pinSheet("Nova senha do dono","","new")}
+async function openAdmin(tab){const k=await askOwner("Ajustes do dono","Digite a senha do dono para mexer no cardápio e nos ajustes.");if(!k)return;
+  if(F.dono||!needsKey(ROLE)){/* só guarda a chave se este celular já usa o caixa */}
+  ADMIN=true;ADMTAB=tab||"cardapio";EDIT=null;render();scrollTo(0,0)}
+
+/* ================= ajustes do dono ================= */
+let EDIT=null,EDIT_BUSY=false;
+function menuCopy(){return JSON.parse(JSON.stringify(CARD||{setores:[],cats:[]}))}
+async function saveMenu(c){c.v=(c.v||0)+1;c.atualizado=Date.now();CARD=c;CARDJSON=JSON.stringify(c);buildMenu();await put("config/cardapio",c)}
+function renderAdmin(){
+  if(Date.now()>ADMIN_UNTIL+60*60e3){ADMIN=false;return render()}
+  const tabs=[["cardapio","Cardápio"],["mesas","Mesas e celulares"],["plano","Plano"],["senha","Senha"]];
+  if(F.estoque)tabs.splice(1,0,["estoque","Estoque"]);
+  let body="";
+  if(ADMTAB==="cardapio")body=editorHTML();
+  if(ADMTAB==="estoque")body=estoqueHTML();
+  if(ADMTAB==="mesas")body=mesasAdmHTML();
+  if(ADMTAB==="plano")body=planoHTML();
+  if(ADMTAB==="senha")body=`<div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Senha do dono</b><p class="note" style="margin:6px 0 10px">Ela protege o cardápio, os ajustes${F.dono?", o faturamento":""} e a troca de função dos celulares.</p><button class="btn wide" type="button" data-trocasenha>Trocar senha do dono</button></div>`;
+  $("app").innerHTML=`${licBanner()}<div class="mhead"><button class="back" type="button" data-admclose>‹ Voltar</button><h1 style="font-size:26px">Ajustes do dono</h1></div>
+  <nav class="tabs" aria-label="Ajustes">${tabs.map(([k,n])=>`<button class="tab" type="button" data-admtab="${k}" aria-pressed="${ADMTAB===k}">${n}</button>`).join("")}</nav><div class="adm-sec">${body}</div>`;
+  bindAtivar();
+}
+function editorHTML(){
+  const c=CARD||{setores:[],cats:[]};
+  const setores=F.setores?`<div class="box"><div class="ed-cat" style="margin:0;border:0;padding:0;background:none"><div class="hd"><b>Setores</b><span class="note">Para onde cada pedido vai</span><button class="btn mini" type="button" data-edsetor="">+ Setor</button></div>
+    <div class="tags" style="margin-top:10px;gap:8px">${(c.setores||[]).map(s=>`<button class="chip" type="button" data-edsetor="${esc(s.id)}" style="min-height:38px">${dot(s.id)}${esc(s.n)}${s.caixa?" · no caixa":""}</button>`).join("")}</div>
+    <p class="note" style="margin:8px 0 0">Setor “no caixa” (ex.: bebidas) não tem celular próprio: quem pega é o caixa ou o garçom e caixa.</p></div></div>`:"";
+  return`<p class="note" style="margin:4px 0 0">Toque num item para mudar nome, preço, opções ou deixar indisponível.</p>${setores}
+  ${(c.cats||[]).map((cat,ci)=>`<section class="ed-cat"><div class="hd"><b>${esc(cat.t)}</b><span class="note">${F.setores?esc(SETOR[cat.setor]||SETORES[0].n)+" · ":""}${(cat.items||[]).length} itens</span>
+    <button class="qb" type="button" data-catmv="${ci}" data-v="-1" aria-label="Subir categoria" ${ci===0?"disabled":""}>↑</button><button class="qb" type="button" data-catmv="${ci}" data-v="1" aria-label="Descer categoria" ${ci===c.cats.length-1?"disabled":""}>↓</button><button class="btn ghost mini" type="button" data-edcat="${esc(cat.id)}">Editar</button></div>
+    ${(cat.items||[]).map(i=>`<button class="ed-row${i.off?" off":""}" type="button" data-editem="${esc(cat.id)}|${esc(i.id)}"><span><b>${esc(i.n)}</b>${i.d?`<small>${esc(i.d)}</small>`:""}<span class="tags">${i.off?'<span class="tag" style="color:var(--bad)">indisponível</span>':""}${i.opts&&i.opts.length?`<span class="tag">${i.opts.length} opç${i.opts.length>1?"ões":"ão"}</span>`:""}${F.estoque&&i.est?'<span class="tag">estoque</span>':""}${F.setores&&i.aviso&&SETOR[i.aviso]?`<span class="tag">avisa ${esc(SETOR[i.aviso])}</span>`:""}${i.g?`<span class="tag">${esc(i.g)}</span>`:""}</span></span><span class="ip">${brl(i.p)}</span></button>`).join("")}
+    <button class="btn ghost wide mini" type="button" data-edadd="${esc(cat.id)}" style="margin-top:8px">+ Item em ${esc(cat.t)}</button></section>`).join("")}
+  <button class="btn pri wide" type="button" data-edcat="" style="margin-top:14px">+ Nova categoria</button>
+  ${!(c.cats||[]).length?'<p class="note" style="margin-top:10px">Comece criando uma categoria (ex.: Pratos, Bebidas) e depois os itens dentro dela.</p>':""}`;
+}
+function findCat(c,id){return(c.cats||[]).find(x=>x.id===id)}
+function openSetor(id){
+  const c=menuCopy();const s=id?(c.setores||[]).find(x=>x.id===id):null;
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>${s?"Editar setor":"Novo setor"}</h3>
+  <form id="setForm" novalidate><div class="fld"><span>Nome</span><input type="text" id="setN" maxlength="24" value="${esc(s?s.n:"")}" placeholder="Ex.: Cozinha, Churrasqueira, Bar" autocomplete="off"></div>
+  <button class="tgl" type="button" id="setCx" aria-pressed="${!!(s&&s.caixa)}" style="margin-top:12px"><span>Fica no caixa (sem celular próprio)</span><span class="sw"></span></button>
+  <p class="note" id="setErr" style="color:var(--bad)" hidden></p>
+  <button class="btn pri wide" type="submit" style="margin-top:14px">Salvar</button></form>
+  ${s?`<button class="btn bad wide" type="button" id="setDel" style="margin-top:8px">Excluir setor</button>`:""}`);
+  $("setCx").onclick=()=>$("setCx").setAttribute("aria-pressed",$("setCx").getAttribute("aria-pressed")!=="true");
+  $("setForm").onsubmit=async e=>{e.preventDefault();const n=$("setN").value.trim();if(!n){$("setErr").textContent="Escreva o nome do setor.";$("setErr").hidden=false;return}
+    const cx=$("setCx").getAttribute("aria-pressed")==="true";
+    if(s){s.n=n;s.caixa=cx}else{c.setores=c.setores||[];c.setores.push({id:"s"+sid6(),n,caixa:cx})}
+    if(!c.setores.some(x=>!x.caixa)){$("setErr").textContent="Pelo menos um setor precisa ter celular próprio.";$("setErr").hidden=false;return}
+    await saveMenu(c);closeSheet();render();toast("Setor salvo")};
+  if(s)$("setDel").onclick=async()=>{const uso=(c.cats||[]).filter(x=>x.setor===s.id).length;if(uso){toast("Mude as categorias deste setor antes de excluir.",true);return}
+    if(c.setores.length<=1){toast("Precisa ter pelo menos um setor.",true);return}
+    const b=$("setDel");if(!b.dataset.sure){b.dataset.sure=1;b.textContent="Toque de novo para excluir";return}
+    c.setores=c.setores.filter(x=>x.id!==s.id);await saveMenu(c);closeSheet();render();toast("Setor excluído")};
+}
+function openCat(id){
+  const c=menuCopy();const cat=id?findCat(c,id):null;let setor=cat?cat.setor:((c.setores||[]).find(s=>!s.caixa)||SETORES[0]).id;
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>${cat?"Editar categoria":"Nova categoria"}</h3>
+  <form id="catForm" novalidate><div class="fld"><span>Nome</span><input type="text" id="catN" maxlength="30" value="${esc(cat?cat.t:"")}" placeholder="Ex.: Pratos, Lanches, Bebidas" autocomplete="off"></div>
+  ${F.setores?`<div class="fld"><span>Os pedidos desta categoria vão para</span><div class="seg" id="catS">${(c.setores||[]).map(s=>`<button type="button" data-v="${esc(s.id)}" aria-pressed="${s.id===setor}">${esc(s.n)}</button>`).join("")}</div></div>`:""}
+  <p class="note" id="catErr" style="color:var(--bad)" hidden></p>
+  <button class="btn pri wide" type="submit" style="margin-top:14px">Salvar</button></form>
+  ${cat?`<button class="btn bad wide" type="button" id="catDel" style="margin-top:8px">Excluir categoria${(cat.items||[]).length?" e os "+cat.items.length+" itens":""}</button>`:""}`);
+  if($("catS"))$("catS").onclick=e=>{const b=e.target.closest("button");if(!b)return;setor=b.dataset.v;$("catS").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b))};
+  $("catForm").onsubmit=async e=>{e.preventDefault();const t=$("catN").value.trim();if(!t){$("catErr").textContent="Escreva o nome da categoria.";$("catErr").hidden=false;return}
+    if(cat){cat.t=t;cat.setor=setor}else{c.cats=c.cats||[];c.cats.push({id:"c"+sid6(),t,setor,items:[]})}
+    await saveMenu(c);closeSheet();render();toast("Categoria salva")};
+  if(cat)$("catDel").onclick=async()=>{const b=$("catDel");if(!b.dataset.sure){b.dataset.sure=1;b.textContent="Toque de novo para excluir";return}
+    c.cats=c.cats.filter(x=>x.id!==cat.id);await saveMenu(c);closeSheet();render();toast("Categoria excluída")};
+}
+const optsText=o=>(o||[]).map(g=>g.t+": "+g.o.join(", ")).join("\n");
+function parseOpts(t){const out=[];for(const ln of String(t).split("\n")){const l=ln.trim();if(!l)continue;const i=l.indexOf(":");if(i<1)return null;const ti=l.slice(0,i).trim(),o=l.slice(i+1).split(",").map(x=>x.trim()).filter(Boolean);if(!ti||o.length<2)return null;out.push({t:ti.slice(0,24),o:o.slice(0,12).map(x=>x.slice(0,30))})}return out}
+function openItem(catId,itemId){
+  const c=menuCopy();const cat=findCat(c,catId);if(!cat)return;const i=itemId?(cat.items||[]).find(x=>x.id===itemId):null;
+  const st={off:!!(i&&i.off),est:!!(i&&i.est),aviso:(i&&i.aviso)||""};
+  const outros=F.setores?(c.setores||[]).filter(s=>s.id!==cat.setor):[];
+  sheet(`<button class="x" type="button" data-close aria-label="Fechar">×</button><h3>${i?"Editar item":"Novo item"} <small class="note" style="font:600 14px var(--cond);display:block;margin-top:4px">${esc(cat.t)}</small></h3>
+  <form id="itForm" novalidate>
+  <div class="fld"><span>Nome</span><input type="text" id="itN" maxlength="50" value="${esc(i?i.n:"")}" placeholder="Ex.: X-Salada" autocomplete="off"></div>
+  <div class="fld"><span>Preço</span><input type="text" inputmode="decimal" id="itP" value="${i?String(i.p).replace(".",","):""}" placeholder="Ex.: 25,90" autocomplete="off"></div>
+  <div class="fld"><span>Descrição (opcional)</span><input type="text" id="itD" maxlength="80" value="${esc(i&&i.d||"")}" placeholder="Ex.: Arroz, feijão e salada" autocomplete="off"></div>
+  <div class="fld"><span>Subgrupo (opcional)</span><input type="text" id="itG" maxlength="30" value="${esc(i&&i.g||"")}" placeholder="Ex.: Latas, 600 ml" autocomplete="off"></div>
+  <div class="fld"><span>Opções para escolher (opcional)</span><textarea id="itO" placeholder="Uma por linha. Ex.:&#10;Ponto: Mal passado, Ao ponto, Bem passado&#10;Feijão: Caldo, Tropeiro">${esc(optsText(i&&i.opts))}</textarea><span class="note" style="text-transform:none;letter-spacing:0;font:500 13px var(--body)">O garçom escolhe uma de cada linha ao lançar.</span></div>
+  ${outros.length?`<div class="fld"><span>Avisar também outro setor? (opcional)</span><div class="seg" id="itAv"><button type="button" data-av="" aria-pressed="${!st.aviso}">Não</button>${outros.map(s=>`<button type="button" data-av="${esc(s.id)}" aria-pressed="${st.aviso===s.id}">${esc(s.n)}</button>`).join("")}</div><span class="note" style="text-transform:none;letter-spacing:0;font:500 13px var(--body)">Ex.: a jantinha vai para a cozinha e avisa a churrasqueira para assar o espeto escolhido.</span></div>`:""}
+  <button class="tgl" type="button" id="itOff" aria-pressed="${!st.off}" style="margin-top:12px"><span>Disponível para pedir</span><span class="sw"></span></button>
+  ${F.estoque?`<button class="tgl" type="button" id="itEst" aria-pressed="${st.est}" style="margin-top:8px"><span>Controlar estoque</span><span class="sw"></span></button>`:""}
+  <p class="note" id="itErr" style="color:var(--bad)" hidden></p>
+  <button class="btn pri wide" type="submit" style="margin-top:14px">Salvar item</button></form>
+  ${i?`<button class="btn bad wide" type="button" id="itDel" style="margin-top:8px">Excluir item</button>`:""}`);
+  const tg=(id,k,inv)=>{const b=$(id);if(!b)return;b.onclick=()=>{st[k]=!st[k];b.setAttribute("aria-pressed",inv?!st[k]:st[k])}};
+  tg("itOff","off",true);tg("itEst","est");
+  if($("itAv"))$("itAv").onclick=e=>{const b=e.target.closest("button");if(!b)return;st.aviso=b.dataset.av;$("itAv").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b))};
+  $("itForm").oninput=()=>{$("itErr").hidden=true};
+  $("itForm").onsubmit=async e=>{e.preventDefault();const err=m=>{$("itErr").textContent=m;$("itErr").hidden=false};
+    const n=$("itN").value.trim(),p=money($("itP").value),opts=parseOpts($("itO").value);
+    if(!n)return err("Escreva o nome do item.");if(p===null)return err("Preço inválido. Ex.: 25,90");if(opts===null)return err("Opções: use “Título: opção 1, opção 2”, uma por linha, com pelo menos 2 opções.");
+    const o={id:i?i.id:"i"+sid6(),n,p,d:$("itD").value.trim(),g:$("itG").value.trim(),opts,off:st.off,est:st.est,aviso:st.aviso};
+    Object.keys(o).forEach(k=>{if(o[k]===""||o[k]===false||(Array.isArray(o[k])&&!o[k].length))delete o[k]});
+    cat.items=cat.items||[];if(i)cat.items[cat.items.indexOf(i)]=o;else cat.items.push(o);
+    await saveMenu(c);closeSheet();render();toast(i?"Item salvo":"Item adicionado")};
+  if(i)$("itDel").onclick=async()=>{const b=$("itDel");if(!b.dataset.sure){b.dataset.sure=1;b.textContent="Toque de novo para excluir";return}
+    cat.items=cat.items.filter(x=>x.id!==i.id);await saveMenu(c);closeSheet();render();toast("Item excluído")};
+}
+function mesasAdmHTML(){
+  const link=location.origin+location.pathname+"#loja="+CODE;
+  return`<div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Nome do estabelecimento</b><form id="nomeForm" novalidate style="display:flex;gap:8px;margin-top:10px"><input type="text" id="nomeIn" maxlength="40" value="${esc(CONFIG.nome)}" autocomplete="off"><button class="btn" type="submit">Salvar</button></form></div>
+  <div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Número de mesas</b><p class="note" style="margin:4px 0 10px">Quantas mesas aparecem no celular do garçom.</p><div class="step"><button class="qb" type="button" data-mesas="-1" aria-label="Menos mesas">−</button><b id="nMesas">${CONFIG.mesas}</b><button class="qb" type="button" data-mesas="1" aria-label="Mais mesas">+</button></div></div>
+  <div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Conectar outro celular</b><p class="note" style="margin:6px 0 10px">Mande este link para o funcionário. Ao abrir, o celular já entra no estabelecimento; depois ele escolhe a função.${F.setores?"":" No plano Básico são 2 funções: Garçom e Preparo."}</p>
+  <p class="note" style="margin:0 0 10px">Código: <b style="color:var(--ash)">${esc(CODE)}</b></p><button class="btn wide" type="button" data-copylink="${esc(link)}">Copiar link de acesso</button>
+  <a class="btn ok wide" href="https://wa.me/?text=${encodeURIComponent("Abra este link para entrar na comanda de "+(CONFIG.nome||"nosso estabelecimento")+": "+link)}" target="_blank" rel="noopener" style="display:flex;justify-content:center;align-items:center;margin-top:8px;text-decoration:none">Mandar pelo WhatsApp</a>
+  <button class="btn ghost wide" type="button" data-trocaloja style="margin-top:8px">Sair deste estabelecimento</button></div>`;
+}
+function planoHTML(){
+  const d=licDias();
+  return`<div class="box"><b style="font:400 22px var(--display);text-transform:uppercase">Seu plano: <span style="color:var(--ember)">${esc(PLANOS[LIC.p].n)}</span></b>
+  <p class="note" style="margin:6px 0 0">Válido até <b style="color:var(--ash)">${dmy(LIC.v)}</b> · ${d<0?"vencido":d===0?"vence hoje":"faltam "+d+" dia"+(d>1?"s":"")}</p>
+  <div class="plans">${Object.entries(PLANOS).map(([k,p])=>`<div class="plan${k===LIC.p?" cur":""}"><h4>${esc(p.n)} <span>${brl(p.preco).replace(",00","")}/mês</span></h4><ul>${p.itens.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>${k===LIC.p?'<span class="now">Seu plano atual</span>':""}</div>`).join("")}</div>
+  <a class="btn ok wide" href="${waLink("Olá! Uso a Comanda Online em "+(CONFIG.nome||CODE)+" (plano "+PLANOS[LIC.p].n+"). Quero renovar ou mudar de plano.")}" target="_blank" rel="noopener" style="display:flex;justify-content:center;align-items:center;margin-top:12px;text-decoration:none">Renovar ou mudar de plano</a></div>
+  <div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Recebeu um código novo?</b><p class="note" style="margin:6px 0 0">Depois de pagar a mensalidade você recebe um código de renovação. Cole aqui.</p>${ativarForm()}</div>`;
+}
+
+/* ================= folha (sheet) ================= */
+function sheet(html){$("sheetIn").innerHTML=html;$("sheet").hidden=false;EDIT_BUSY=true}
+function closeSheet(){$("sheet").hidden=true;$("sheetIn").innerHTML="";OPT=null;EDIT_BUSY=false;if(PINRES){const r=PINRES;PINRES=null;r(null)}}
+$("sheet").addEventListener("click",e=>{if(e.target===$("sheet")||e.target.closest("[data-close]"))closeSheet()});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("sheet").hidden)closeSheet()});
+
+/* ================= toques ================= */
+document.addEventListener("input",e=>{
+  const o=e.target.closest("[data-obs]");if(o){const d=DRAFT[+o.dataset.obs];if(d)d.obs=o.value;return}
+  if(e.target.id==="recebido"&&CMESA!==null){const p=pay(CMESA);p.recebido=e.target.value;const T=totals(CMESA),rec=parseFloat(p.recebido.replace(",","."))||0;$("troco").textContent=rec?(rec>=T.tot?"Troco: "+brl(rec-T.tot):"Faltam "+brl(T.tot-rec)):"Digite quanto o cliente entregou para ver o troco."}
+});
+document.addEventListener("submit",async e=>{
+  if(e.target.id==="nomeForm"){e.preventDefault();const n=$("nomeIn").value.trim();if(!n)return;CONFIG.nome=n;$("brandName").textContent=n;try{await put("config/geral",{mesas:CONFIG.mesas,nome:n});toast("Nome salvo")}catch(er){writeErr(er)}}
+});
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("button");if(!t)return;const d=t.dataset;
+  if(d.reload!==undefined){location.reload();return}
+  if(d.copylink!==undefined){const link=d.copylink||location.origin+location.pathname+"#loja="+CODE;try{await navigator.clipboard.writeText(link);toast("Link copiado. Mande no WhatsApp do funcionário.")}catch(err){toast(link)}return}
+  if(d.trocaloja!==undefined){if(!t.dataset.sure){t.dataset.sure=1;t.textContent="Toque de novo para confirmar";return}ls("co_loja",null);ls("co_role",null);ls("co_k",null);location.hash="";location.reload();return}
+  if(d.som!==undefined){audioOn();setTimeout(()=>{beep(2);document.querySelectorAll("[data-som]").forEach(x=>{const b=x.closest(".banner");if(b)b.remove()})},150);return}
+  if(d.notif!==undefined){audioOn();try{const r=await Notification.requestPermission();if(r==="granted"){beep(2);notify("Avisos ligados","Os pedidos vão chegar assim neste celular.","teste")}}catch(err){}render();return}
+  if(d.admin!==undefined){openAdmin();return}
+  if(d.admclose!==undefined){ADMIN=false;render();scrollTo(0,0);return}
+  if(d.admtab){ADMTAB=d.admtab;render();scrollTo(0,0);return}
+  if(d.edsetor!==undefined){openSetor(d.edsetor);return}
+  if(d.edcat!==undefined){openCat(d.edcat);return}
+  if(d.edadd){openItem(d.edadd,"");return}
+  if(d.editem){const[a,b]=d.editem.split("|");openItem(a,b);return}
+  if(d.catmv!==undefined){const c=menuCopy(),i=+d.catmv,j=i+ +d.v;if(j<0||j>=c.cats.length)return;[c.cats[i],c.cats[j]]=[c.cats[j],c.cats[i]];await saveMenu(c);render();return}
+  if(d.skcount!==undefined){openContagem();return}
+  if(d.skarrive!==undefined){openChegou();return}
+  if(d.sk){const k=d.sk,v=+d.v;if(v<0&&(!tracked(k)||STOCK[k]<=0))return;stockWrite({qtd:{[k]:tracked(k)?{inc:v}:Math.max(0,v)}});return}
+  if(d.trocasenha!==undefined){trocarSenha();return}
+  if(d.unlock!==undefined){const k=await pinSheet("Senha do dono","Digite a senha do dono.","check");if(k){setKey(k,"pin");render()}return}
+  if(t.id==="roleBtn"){if(OWNER||!OWNER_OK){const k=await askOwner("Trocar de função","Só o dono troca a função deste celular. Digite a senha do dono.");if(!k)return;UNLOCK=k}
+    ROLE="";ls("co_role",null);VIEW="mesas";CMESA=null;ATAB="mesas";CTAB="contas";closeSheet();render();scrollTo(0,0);return}
+  if(d.role){
+    const r=d.role;
+    if(needsKey(r)){
+      if(F.dono){const k=UNLOCK||await askOwner("Acesso do dono","Digite a senha do dono para entrar no caixa.");if(!k)return;setKey(k,"pin")}
+      else if(PLAIN)setKey(PLAIN,"plain");
+    }else setKey("");
+    UNLOCK=null;ROLE=r;ls("co_role",ROLE);CTAB=r==="caixa"?"contas":CTAB;audioOn();keepAwake();render();scrollTo(0,0);return}
+  if(d.mesa){VIEW=+d.mesa;DRAFT=[];render();scrollTo(0,0);return}
+  if(d.go==="mesas"){if(draftCount()&&!t.dataset.sure){t.dataset.sure=1;t.textContent="Sair sem enviar?";setTimeout(()=>{if(t.isConnected){delete t.dataset.sure;t.textContent="‹ Mesas"}},2500);return}VIEW="mesas";DRAFT=[];render();scrollTo(0,0);return}
+  if(d.jump){const s=$("cat-"+d.jump);if(s){const y=s.getBoundingClientRect().top+scrollY-120;scrollTo({top:y,behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}return}
+  if(d.add){const it=ITEM[d.add];if(!it||it.off)return;if(it.opts&&it.opts.length)openOpt(it);else addDraft(it,"",1);return}
+  if(d.oq){if(OPT){OPT.q=Math.max(1,OPT.q+ +d.oq);$("oQ").textContent=OPT.q}return}
+  if(d.review!==undefined){openReview();return}
+  if(d.dq!==undefined){const x=DRAFT[+d.dq];if(x&& +d.v>0&&avail(x.sid)<1){toast(x.n+": não tem mais no estoque",true);return}if(x){x.q+= +d.v;if(x.q<=0)DRAFT.splice(+d.dq,1)}renderDraftBar();openReview();return}
+  if(d.pediu!==undefined){const c=CONTAS[VIEW];if(c)try{await patch("contas/m"+VIEW,{pediuConta:!c.pediuConta})}catch(err){writeErr(err)}return}
+  if(d.levei){try{await patch("tickets/"+d.levei,{status:"entregue",atualizado:Date.now()})}catch(err){writeErr(err)}return}
+  if(d.st){try{await patch("tickets/"+d.st,{status:d.v,atualizado:Date.now()})}catch(err){writeErr(err)}return}
+  if(d.tab){if(d.tab==="ajustes"){openAdmin();return}CTAB=d.tab;CMESA=null;renderCaixa();scrollTo(0,0);return}
+  if(d.atab){if(d.atab==="ajustes"){openAdmin();return}ATAB=d.atab;VIEW="mesas";CMESA=null;DRAFT=[];render();scrollTo(0,0);return}
+  if(d.per){loadPer(d.per);return}
+  if(d.conta!==undefined){CMESA=d.conta===""?null:+d.conta;render();scrollTo(0,0);return}
+  if(d.rm){await tirarItem(CMESA,d.rm);return}
+  if(d.serv!==undefined){const p=pay(CMESA);p.servico=!p.servico;p.confirm=false;render();return}
+  if(d.pes){const p=pay(CMESA);p.pessoas=Math.max(1,Math.min(30,p.pessoas+ +d.pes));render();return}
+  if(d.forma){const p=pay(CMESA);p.forma=d.forma;p.confirm=false;render();return}
+  if(d.fechar){const p=pay(CMESA);if(d.fechar==="pedir"){p.confirm=true;render()}else if(d.fechar==="nao"){p.confirm=false;render()}else fecharConta(CMESA);return}
+  if(d.mesas){const n=Math.max(1,Math.min(80,CONFIG.mesas+ +d.mesas));CONFIG.mesas=n;$("nMesas").textContent=n;clearTimeout(MT);MT=setTimeout(async()=>{try{await put("config/geral",{mesas:CONFIG.mesas,nome:CONFIG.nome})}catch(err){writeErr(err)}},700);return}
+});
+let MT;
+
+setInterval(()=>{if(FECH_UN&&FECH_DAY!==workday()){stopFech();startFech()}},60000);
+setInterval(()=>{const g=ROLE==="garcom"||(ROLE==="atend"&&ATAB==="mesas"&&CMESA===null);if(ROLE&&S.mode&&!(g&&VIEW!=="mesas"))refresh();else if(g)renderMesaTop();if(LIC&&bloqueado()&&!ADMIN)render()},30000);
+
+(async()=>{
+  await initStore();
+  setSync();
+  render();
+  if(CODE&&(S.mode==="local"||S.mode==="fb"))subscribe();
+  if(KEY)startFech();
+  keepAwake();
+})();
+</script><script>if("serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body></html>
