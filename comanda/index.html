@@ -301,7 +301,7 @@ function localEmit(){localSave();if(bc)try{bc.postMessage({code:CODE,d:LOCAL.dat
 function splitPath(p){const a=p.split("/");return[a.slice(0,-1).join("/"),a[a.length-1]]}
 let CODE="",HASHLIC="";
 function readCode(){
-  const h=location.hash||"";const m=h.match(/loja=([A-Za-z0-9_-]{8,60})/),l=h.match(/lic=([A-Za-z0-9_.-]{20,})/);
+  const h=location.hash||"";const m=h.match(/loja=([A-Za-z0-9_-]{8,60})/)||h.match(/^#([a-z0-9][a-z0-9_-]{7,59})$/i),l=h.match(/lic=([A-Za-z0-9_.-]{20,})/);
   if(m){if(ls("co_loja")&&ls("co_loja")!==m[1]){ls("co_role",null);ls("co_k",null)}ls("co_loja",m[1])}
   if(l)HASHLIC=l[1];
   if(m||l)try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
@@ -390,8 +390,8 @@ async function applyLicDoc(){
   syncPlainKey();if(KEY&&!FECH_UN)startFech();render();
 }
 // link de ativação aberto com a comanda já aberta (só muda o # do endereço)
-addEventListener("hashchange",()=>{const h=location.hash||"";if(!/loja=|lic=/.test(h))return;
-  const m=h.match(/loja=([A-Za-z0-9_-]{8,60})/);if(m&&m[1]!==CODE){location.reload();return}
+addEventListener("hashchange",()=>{const h=location.hash||"";const plain=h.match(/^#([a-z0-9][a-z0-9_-]{7,59})$/i);if(!/loja=|lic=/.test(h)&&!plain)return;
+  const m=h.match(/loja=([A-Za-z0-9_-]{8,60})/)||plain;if(m&&m[1]!==CODE){location.reload();return}
   const l=h.match(/lic=([A-Za-z0-9_.-]{20,})/);try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
   if(l&&LICDOC!==undefined){HASHLIC=l[1];applyLicDoc()}});
 async function ativarCodigo(txt){
@@ -570,7 +570,7 @@ function renderCode(){
   <p class="note" id="codeErr" style="color:var(--bad);margin:6px 0 0" hidden>O código tem pelo menos 8 letras ou números, sem espaços.</p>
   <button class="btn pri wide" type="submit" style="margin-top:12px">Entrar</button></form>
   <p class="note" style="margin-top:18px">Ainda não tem a Comanda Online? <a href="${waLink("Olá! Quero conhecer a Comanda Online para o meu estabelecimento.")}" target="_blank" rel="noopener" style="color:var(--gold)">Fale com a gente no WhatsApp</a>.</p>`;
-  $("codeForm").onsubmit=e=>{e.preventDefault();let v=$("codeIn").value.trim();const m=v.match(/loja=([A-Za-z0-9_-]{8,60})/);if(m)v=m[1];if(!/^[A-Za-z0-9_-]{8,60}$/.test(v)){$("codeErr").hidden=false;return}ls("co_loja",v);location.reload()};
+  $("codeForm").onsubmit=e=>{e.preventDefault();let v=$("codeIn").value.trim();const m=v.match(/loja=([A-Za-z0-9_-]{8,60})/)||v.match(/#([A-Za-z0-9_-]{8,60})$/);if(m)v=m[1];if(!/^[A-Za-z0-9_-]{8,60}$/.test(v)){$("codeErr").hidden=false;return}ls("co_loja",v);location.reload()};
   $("codeIn").oninput=()=>{$("codeErr").hidden=true};
 }
 function renderFail(){
@@ -1032,7 +1032,7 @@ function openItem(catId,itemId){
     cat.items=cat.items.filter(x=>x.id!==i.id);await saveMenu(c);closeSheet();render();toast("Item excluído")};
 }
 function mesasAdmHTML(){
-  const link=location.origin+location.pathname+"#loja="+CODE;
+  const link=location.origin+location.pathname+"#"+CODE;
   return`<div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Nome do estabelecimento</b><form id="nomeForm" novalidate style="display:flex;gap:8px;margin-top:10px"><input type="text" id="nomeIn" maxlength="40" value="${esc(CONFIG.nome)}" autocomplete="off"><button class="btn" type="submit">Salvar</button></form></div>
   <div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Número de mesas</b><p class="note" style="margin:4px 0 10px">Quantas mesas aparecem no celular do garçom.</p><div class="step"><button class="qb" type="button" data-mesas="-1" aria-label="Menos mesas">−</button><b id="nMesas">${CONFIG.mesas}</b><button class="qb" type="button" data-mesas="1" aria-label="Mais mesas">+</button></div></div>
   <div class="box"><b style="font:400 20px var(--display);text-transform:uppercase">Conectar outro celular</b><p class="note" style="margin:6px 0 10px">Mande este link para o funcionário. Ao abrir, o celular já entra no estabelecimento; depois ele escolhe a função.${F.setores?"":" No plano Básico são 2 funções: Garçom e Preparo."}</p>
@@ -1066,7 +1066,7 @@ document.addEventListener("submit",async e=>{
 document.addEventListener("click",async e=>{
   const t=e.target.closest("button");if(!t)return;const d=t.dataset;
   if(d.reload!==undefined){location.reload();return}
-  if(d.copylink!==undefined){const link=d.copylink||location.origin+location.pathname+"#loja="+CODE;try{await navigator.clipboard.writeText(link);toast("Link copiado. Mande no WhatsApp do funcionário.")}catch(err){toast(link)}return}
+  if(d.copylink!==undefined){const link=d.copylink||location.origin+location.pathname+"#"+CODE;try{await navigator.clipboard.writeText(link);toast("Link copiado. Mande no WhatsApp do funcionário.")}catch(err){toast(link)}return}
   if(d.trocaloja!==undefined){if(!t.dataset.sure){t.dataset.sure=1;t.textContent="Toque de novo para confirmar";return}ls("co_loja",null);ls("co_role",null);ls("co_k",null);location.hash="";location.reload();return}
   if(d.som!==undefined){audioOn();setTimeout(()=>{beep(2);document.querySelectorAll("[data-som]").forEach(x=>{const b=x.closest(".banner");if(b)b.remove()})},150);return}
   if(d.notif!==undefined){audioOn();try{const r=await Notification.requestPermission();if(r==="granted"){beep(2);notify("Avisos ligados","Os pedidos vão chegar assim neste celular.","teste")}}catch(err){}render();return}

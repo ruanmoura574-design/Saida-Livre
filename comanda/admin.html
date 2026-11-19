@@ -61,7 +61,7 @@ textarea{min-height:80px;resize:vertical;font-size:14px}
   <label for="nome">Nome do estabelecimento</label><input id="nome" maxlength="40" placeholder="Ex.: Restaurante da Maria" autocomplete="off">
   <label for="codigo">Código do estabelecimento</label>
   <div class="row"><input id="codigo" maxlength="60" autocomplete="off" autocapitalize="none" spellcheck="false" style="flex:3"><button class="btn ghost" type="button" id="novoCod" style="flex:1">Gerar</button></div>
-  <p class="note">Para renovar, use o mesmo código. Cliente novo: deixe o gerado (tem letras aleatórias para ninguém adivinhar).</p>
+  <p class="note">Gerado sozinho a partir do nome. Para renovar ou mudar o plano, use “Meus clientes” lá embaixo.</p>
   <span class="lbl">Plano</span>
   <div class="seg" id="plano">
     <button type="button" data-p="basico" aria-pressed="false">Básico<small>R$ 15/mês</small></button>
@@ -72,8 +72,8 @@ textarea{min-height:80px;resize:vertical;font-size:14px}
   <div class="row"><input type="date" id="valido" style="flex:2"><button class="btn ghost" type="button" data-mais="30">+30</button><button class="btn ghost" type="button" data-mais="90">+90</button></div>
   <label for="fone">WhatsApp do cliente (opcional)</label><input id="fone" inputmode="tel" placeholder="Ex.: 62 99999-9999" autocomplete="off">
   <p class="note" id="err" style="color:var(--bad)" hidden></p>
-  <button class="btn pri wide" type="submit" style="margin-top:14px;min-height:54px">Gerar link de acesso</button>
-  <div class="out" id="out" hidden></div>
+  <button class="btn pri wide" type="submit" style="margin-top:14px;min-height:54px">Gerar acesso</button>
+  <div id="out" hidden></div>
 </form>
 
 <h2>Meus clientes</h2>
@@ -84,6 +84,20 @@ textarea{min-height:80px;resize:vertical;font-size:14px}
 </div>
 </main>
 <div class="toast" id="toast" hidden></div>
+<style>
+.res>*{min-width:0}
+.res{min-width:0;margin-top:14px;padding:14px;border-radius:16px;border:1px solid var(--ok);background:#3ddc8410;display:grid;gap:12px}
+.res h3{margin:0;font:400 22px/1.1 var(--display);text-transform:uppercase;color:var(--ok)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:15px}
+.kv span{color:var(--ash2)}.kv b{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.lnk{background:var(--coal);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:600 15px var(--body);color:var(--gold);overflow-wrap:anywhere}
+.res .acts .btn{flex:1 1 140px}
+.preview{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1410;border:1px solid #1f3a2b;border-radius:12px;padding:12px;font-size:14px;line-height:1.45}
+details summary{cursor:pointer;color:var(--ash2);font:700 14px var(--cond);letter-spacing:.06em;text-transform:uppercase}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
@@ -99,8 +113,17 @@ const dnum=s=>{const[y,m,d]=s.split("-").map(Number);return Math.round(Date.UTC(
 const dias=v=>dnum(v)-dnum(ymd(new Date()));
 const addDays=(s,n)=>{const[y,m,d]=s.split("-").map(Number);return ymd(new Date(y,m-1,d+n))};
 const b64u=u=>btoa(String.fromCharCode(...new Uint8Array(u))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-const slug=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,24)||"loja";
+const slug=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,18).replace(/-$/,"")||"loja";
 const rnd=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),x=>"abcdefghjkmnpqrstuvwxyz23456789"[x%31]).join("");
+const saud=()=>{const h=new Date().getHours();return h<12?"Bom dia":h<18?"Boa tarde":"Boa noite"};
+
+/* banco: grava o plano direto na comanda do cliente (assim o link fica curto) */
+const FB={apiKey:"AIzaSyBs6XpI7Iu_in9CHU1PfuwIxj1sQTyaa2A",authDomain:"comanda-gbbrasa.firebaseapp.com",projectId:"comanda-gbbrasa",storageBucket:"comanda-gbbrasa.firebasestorage.app",messagingSenderId:"861719304220",appId:"1:861719304220:web:4fcb42056c1559d43327d9"};
+const dbP=(async()=>{try{if(!window.firebase||!FB.apiKey)return null;firebase.initializeApp(FB);const a=firebase.auth();
+  await new Promise((res,rej)=>{const un=a.onAuthStateChanged(u=>{un();if(u)res();else a.signInAnonymously().then(res,rej)})});return firebase.firestore()}catch(e){return null}})();
+const tempo=(p,ms)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj("tempo"),ms))]);
+async function gravaLic(code,lic){try{const db=await tempo(dbP,8000);if(!db)return false;await tempo(db.doc("lojas/"+code+"/config/licenca").set({lic,atualizado:Date.now()}),10000);return true}catch(e){return false}}
+
 let PRIV=null;
 async function loadKey(txt){
   const t=String(txt||"").trim();if(!t.startsWith("CO1."))throw 0;
@@ -121,8 +144,8 @@ async function init(){
 }
 $("keySave").onclick=async()=>{try{PRIV=await loadKey($("keyIn").value);ls("co_admin_key",$("keyIn").value.trim());$("keyIn").value="";toast("Chave guardada");init()}catch(e){toast("Chave inválida. Confira se copiou tudo.",true)}};
 $("keyForget").onclick=e=>{const b=e.target;if(!b.dataset.sure){b.dataset.sure=1;b.textContent="Toque de novo para apagar";return}ls("co_admin_key",null);PRIV=null;init()};
-function novoCodigo(){$("codigo").value=slug($("nome").value)+"-"+rnd(6)}
-$("novoCod").onclick=novoCodigo;
+function novoCodigo(){$("codigo").value=slug($("nome").value)+"-"+rnd(5)}
+$("novoCod").onclick=()=>{delete $("codigo").dataset.fixo;novoCodigo()};
 $("nome").oninput=()=>{if(!$("codigo").dataset.fixo)novoCodigo()};
 $("codigo").oninput=()=>{$("codigo").dataset.fixo=1};
 let PLANO="inter";
@@ -130,35 +153,89 @@ $("plano").onclick=e=>{const b=e.target.closest("button");if(!b)return;PLANO=b.d
 document.querySelectorAll("[data-mais]").forEach(b=>b.onclick=()=>{const base=$("valido").value&&dias($("valido").value)>=0?$("valido").value:ymd(new Date());$("valido").value=addDays(base,+b.dataset.mais)});
 const CLI=()=>{try{return JSON.parse(ls("co_admin_clientes")||"[]")}catch(e){return[]}};
 const saveCli=a=>ls("co_admin_clientes",JSON.stringify(a));
-function msgPara(c,novo){
-  const link=APP+"#loja="+c.codigo+"&lic="+c.lic;
-  return novo?`Olá! Sua Comanda Online de ${c.nome} está pronta ✅\n\nPlano ${PL[c.plano].n}, válido até ${dmy(c.valido)}.\n\n1️⃣ Abra este link no celular do dono:\n${link}\n\n2️⃣ Crie a senha do dono e escolha o modelo de cardápio.\n3️⃣ No Chrome, toque nos 3 pontinhos › Instalar app para deixar o ícone na tela.\n\nDepois é só mandar o link de acesso para os funcionários (fica em Ajustes do dono › Mesas e celulares).`
-  :`Olá! Recebemos a mensalidade da Comanda Online de ${c.nome} ✅\n\nPara renovar, abra este link no celular do dono:\n${link}\n\nPlano ${PL[c.plano].n}, válido até ${dmy(c.valido)}.`;
+const linkDe=c=>c.ok?APP+"#"+c.codigo:APP+"#loja="+c.codigo+"&lic="+c.lic;
+
+/* mensagens para o cliente */
+function msgPara(c,tipo){
+  const p=PL[c.plano].n,ate=dmy(c.valido);
+  if(tipo==="novo")return`${saud()}! 😊
+
+🎉 *Parabéns!* Você acaba de adquirir o *Plano ${p}* da *Comanda Online* para o *${c.nome}*.
+
+📅 *Válido até:* ${ate}
+
+📲 *Para começar:*
+1️⃣ Abra o link abaixo no celular do dono
+2️⃣ Crie sua senha e escolha o modelo de cardápio
+3️⃣ Pronto! Depois é só conectar os celulares da equipe
+
+🔗 *Seu acesso:*
+${linkDe(c)}
+
+Qualquer dúvida, é só chamar aqui. Obrigado pela confiança! 🙏`;
+  if(tipo==="plano")return`${saud()}! 😊
+
+✅ *Plano alterado com sucesso!*
+
+O *${c.nome}* agora está no *Plano ${p}* da *Comanda Online*.
+📅 *Válido até:* ${ate}
+${c.ok?"\nNão precisa fazer nada: as novidades já aparecem nos celulares da equipe.":"\nPara ativar, abra este link no celular do dono:\n"+linkDe(c)}
+
+Qualquer dúvida, é só chamar aqui! 🙏`;
+  return`${saud()}! 😊
+
+✅ *Pagamento confirmado!*
+
+O *Plano ${p}* da *Comanda Online* do *${c.nome}* foi renovado.
+📅 *Válido até:* ${ate}
+${c.ok?"\nNão precisa fazer nada: a comanda já está atualizada em todos os celulares.":"\nPara ativar, abra este link no celular do dono:\n"+linkDe(c)}
+
+Obrigado pela confiança! 🙏`;
 }
+function msgCobra(c){const d=dias(c.valido);
+  return`${saud()}! 😊
+
+Passando para lembrar que a mensalidade da *Comanda Online* do *${c.nome}* ${d<0?"venceu em *"+dmy(c.valido)+"*":d===0?"vence *hoje*":"vence em *"+dmy(c.valido)+"*"}.
+
+💳 *Plano ${PL[c.plano].n}:* R$ ${PL[c.plano].v},00 por mês
+
+Assim que o pagamento for feito, a renovação é automática nos celulares. Qualquer dúvida, estou à disposição! 🙏`}
 const waTo=(fone,txt)=>{const d=String(fone||"").replace(/\D/g,"");return"https://wa.me/"+(d?(d.length<=11?"55"+d:d):"")+"?text="+encodeURIComponent(txt)};
+
 $("f").onsubmit=async e=>{e.preventDefault();const err=m=>{$("err").textContent=m;$("err").hidden=false};$("err").hidden=true;
-  const nome=$("nome").value.trim(),codigo=$("codigo").value.trim(),valido=$("valido").value,fone=$("fone").value.trim();
+  const nome=$("nome").value.trim(),codigo=$("codigo").value.trim().toLowerCase(),valido=$("valido").value,fone=$("fone").value.trim();
   if(!nome)return err("Escreva o nome do estabelecimento.");
-  if(!/^[A-Za-z0-9_-]{8,60}$/.test(codigo))return err("O código precisa de 8 a 60 letras, números ou traço, sem espaço.");
+  if(!/^[a-z0-9][a-z0-9_-]{7,59}$/.test(codigo))return err("O código precisa de 8 a 60 letras minúsculas, números ou traço, sem espaço.");
   if(!/^\d{4}-\d{2}-\d{2}$/.test(valido))return err("Escolha a data de validade.");
+  const bt=$("f").querySelector("button[type=submit]");bt.disabled=true;bt.textContent="Gerando…";
   const lic=await sign({l:codigo,p:PLANO,v:valido,n:nome,e:Date.now()});
-  const all=CLI();const ex=all.find(c=>c.codigo===codigo);const novo=!ex;
-  const c=Object.assign(ex||{criado:Date.now()},{nome,codigo,plano:PLANO,valido,fone:fone||(ex&&ex.fone)||"",lic,emitido:Date.now()});
+  const ok=await gravaLic(codigo,lic);
+  bt.disabled=false;bt.textContent="Gerar acesso";
+  const all=CLI();const ex=all.find(c=>c.codigo===codigo);
+  const tipo=!ex?"novo":ex.plano!==PLANO?"plano":"renova";
+  const c=Object.assign(ex||{criado:Date.now()},{nome,codigo,plano:PLANO,valido,fone:fone||(ex&&ex.fone)||"",lic,ok,emitido:Date.now()});
   if(!ex)all.unshift(c);saveCli(all);
-  const link=APP+"#loja="+codigo+"&lic="+lic,msg=msgPara(c,novo);
-  $("out").hidden=false;
-  $("out").innerHTML=`<b>${novo?"Acesso criado":"Renovação gerada"} · ${esc(nome)} · ${PL[PLANO].n} até ${dmy(valido)}</b><span>${esc(link)}</span>
-    <div class="acts"><button class="btn mini" type="button" data-copy="${esc(link)}">Copiar link</button><button class="btn mini" type="button" data-copy="${esc(msg)}">Copiar mensagem</button><a class="btn ok mini" href="${esc(waTo(c.fone,msg))}" target="_blank" rel="noopener">Enviar no WhatsApp</a></div>`;
-  lista();toast(novo?"Cliente criado":"Renovação gerada");
+  mostra(c,tipo);lista();
 };
+function mostra(c,tipo){
+  const msg=msgPara(c,tipo),tit={novo:"Acesso criado",plano:"Plano alterado",renova:"Plano renovado"}[tipo];
+  $("out").hidden=false;
+  $("out").innerHTML=`<div class="res"><h3>✓ ${tit}</h3>
+    <div class="kv"><span>Estabelecimento</span><b>${esc(c.nome)}</b><span>Plano</span><b>${esc(PL[c.plano].n)} · R$ ${PL[c.plano].v}/mês</b><span>Válido até</span><b>${dmy(c.valido)}</b><span>Código</span><b>${esc(c.codigo)}</b></div>
+    ${tipo==="novo"||!c.ok?`<div class="lnk">${esc(linkDe(c))}</div>`:'<p class="note" style="margin:0">A comanda do cliente já foi atualizada. Não precisa mandar link.</p>'}
+    ${c.ok?"":'<p class="note" style="margin:0;color:var(--warn)">Sem conexão com o sistema agora: o link saiu no formato longo, mas funciona do mesmo jeito.</p>'}
+    <div class="acts"><a class="btn ok" href="${esc(waTo(c.fone,msg))}" target="_blank" rel="noopener">Enviar no WhatsApp</a><button class="btn" type="button" data-copy="${esc(msg)}">Copiar mensagem</button>${tipo==="novo"?`<button class="btn ghost" type="button" data-copy="${esc(linkDe(c))}">Copiar link</button>`:""}</div>
+    <details><summary>Ver a mensagem</summary><div class="preview" style="margin-top:8px">${esc(msg)}</div></details></div>`;
+  toast(tit);
+}
 function lista(){
   const all=CLI().sort((a,b)=>dias(a.valido)-dias(b.valido));
   const ativos=all.filter(c=>dias(c.valido)>=-2),mrr=ativos.reduce((a,c)=>a+PL[c.plano].v,0);
   $("resumo").innerHTML=`<div class="kpis"><div class="kpi"><span>Clientes ativos</span><b>${ativos.length}</b></div><div class="kpi"><span>Por mês</span><b>R$ ${mrr}</b></div><div class="kpi"><span>Vencendo (7 dias)</span><b>${all.filter(c=>{const d=dias(c.valido);return d>=0&&d<=7}).length}</b></div></div>`;
-  $("lista").innerHTML=all.length?all.map(c=>{const d=dias(c.valido),st=d<0?["b-bad","Vencido "+(-d)+"d"]:d<=5?["b-warn",d===0?"Vence hoje":"Vence em "+d+"d"]:["b-ok","Ativo"];
+  $("lista").innerHTML=all.length?all.map(c=>{const d=dias(c.valido),st=d<0?["b-bad","Vencido há "+(-d)+(d===-1?" dia":" dias")]:d<=5?["b-warn",d===0?"Vence hoje":"Vence em "+d+(d===1?" dia":" dias")]:["b-ok","Ativo"];
     return`<div class="cli"><div class="top"><b>${esc(c.nome)}</b><span class="badge ${st[0]}">${st[1]}</span></div>
-    <span class="note">${esc(PL[c.plano].n)} · até ${dmy(c.valido)} · código ${esc(c.codigo)}${c.fone?" · "+esc(c.fone):""}</span>
-    <div class="acts"><button class="btn pri mini" type="button" data-renova="${esc(c.codigo)}">Renovar +30 dias</button><button class="btn mini" type="button" data-edit="${esc(c.codigo)}">Mudar plano</button><button class="btn mini" type="button" data-copy="${esc(APP+"#loja="+c.codigo+"&lic="+c.lic)}">Copiar link</button><a class="btn ok mini" href="${esc(waTo(c.fone,"Olá! Aqui é da Comanda Online. "+(d<0?"Sua mensalidade venceu em "+dmy(c.valido)+". Quer renovar?":"Sua mensalidade vence em "+dmy(c.valido)+". Quer renovar?")))}" target="_blank" rel="noopener">Cobrar</a><button class="btn ghost mini" type="button" data-rm="${esc(c.codigo)}">Tirar da lista</button></div></div>`}).join("")
+    <span class="note">Plano ${esc(PL[c.plano].n)} · até ${dmy(c.valido)}${c.fone?" · "+esc(c.fone):""}</span>
+    <div class="acts"><button class="btn pri mini" type="button" data-renova="${esc(c.codigo)}">Renovar +30 dias</button><button class="btn mini" type="button" data-edit="${esc(c.codigo)}">Mudar plano</button><button class="btn mini" type="button" data-copy="${esc(linkDe(c))}">Copiar link</button><a class="btn ok mini" href="${esc(waTo(c.fone,msgCobra(c)))}" target="_blank" rel="noopener">Cobrar</a><button class="btn ghost mini" type="button" data-rm="${esc(c.codigo)}">Tirar da lista</button></div></div>`}).join("")
   :'<p class="note">Nenhum cliente ainda. Crie o primeiro acima.</p>';
 }
 function fill(c,renova){
@@ -170,8 +247,8 @@ function fill(c,renova){
 document.addEventListener("click",async e=>{
   const b=e.target.closest("button");if(!b)return;const d=b.dataset;
   if(d.copy!==undefined){try{await navigator.clipboard.writeText(d.copy);toast("Copiado")}catch(er){toast("Não deu para copiar",true)}return}
-  if(d.renova){const c=CLI().find(x=>x.codigo===d.renova);if(c){fill(c,true);toast("Confira e toque em Gerar link")}return}
-  if(d.edit){const c=CLI().find(x=>x.codigo===d.edit);if(c){fill(c,false);toast("Escolha o novo plano e toque em Gerar link")}return}
+  if(d.renova){const c=CLI().find(x=>x.codigo===d.renova);if(c){fill(c,true);toast("Confira e toque em Gerar acesso")}return}
+  if(d.edit){const c=CLI().find(x=>x.codigo===d.edit);if(c){fill(c,false);toast("Escolha o novo plano e toque em Gerar acesso")}return}
   if(d.rm){if(!b.dataset.sure){b.dataset.sure=1;b.textContent="Toque de novo";return}saveCli(CLI().filter(x=>x.codigo!==d.rm));lista();return}
 });
 $("exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(CLI(),null,1)],{type:"application/json"}));a.download="clientes-comanda-"+ymd(new Date())+".json";a.click()};
